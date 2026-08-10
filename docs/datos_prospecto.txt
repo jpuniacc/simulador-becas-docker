@@ -1,0 +1,22 @@
+Datos a Solicitar:
+
+Paso 1:
+Nombre
+Apellido
+Email
+RUT Si no tiene rut, se le pregunta por el numero de pasaporte.
+Telefono
+Curso actual (enseñanza media)
+región de colegio
+comuna de colegio
+nombre_colegio
+carrera_quiere_estudiar 
+promedio numero
+Ranking de notas
+Escala de notas (Paes)
+Puntaje compresión lectora
+Puntaje matermática 1
+Asignatura con mejor puntaje (esto depende de la carrera)
+Puntaje asignatura mejor puntaje
+Pregunta si usa CAE
+Selecciona decil de ingreso mensual

@@ -1,0 +1,250 @@
+/* Estilos compartidos para formularios del simulador */
+
+/* Contenedor de formulario */
+.form-container {
+    @apply w-full max-w-6xl mx-auto p-6;
+}
+
+.form-title {
+    @apply text-3xl font-bold mb-2;
+    color: #00A3E0;
+}
+
+.form-subtitle {
+    @apply text-gray-600 mb-8;
+}
+
+.personal-form {
+    @apply w-full;
+}
+
+.form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6 m-1;
+}
+
+.form-field {
+    @apply w-full mt-2;
+}
+
+/* Estilos personalizados para InputText de PrimeVue */
+:deep(.form-input) {
+    @apply w-full;
+}
+
+:deep(.form-input-group) {
+    @apply w-full;
+}
+
+:deep(.p-inputtext) {
+    @apply w-full px-4 py-3 border-2 rounded-lg transition-all duration-200;
+    border-color: #e5e7eb;
+    background-color: #ffffff;
+    font-size: 16px !important; /* Evita zoom automático en móviles */
+}
+
+/* Estilos para InputGroup */
+:deep(.p-inputgroup) {
+    @apply w-full;
+}
+
+:deep(.p-inputgroup-addon) {
+    @apply px-4 py-3 border-2 border-r-0 rounded-l-lg transition-all duration-200;
+    border-color: #e5e7eb;
+    background-color: #f9fafb;
+    color: #374151;
+    font-weight: 500;
+}
+
+:deep(.p-inputgroup .p-float-label) {
+    @apply flex-1;
+}
+
+:deep(.p-inputgroup .p-inputtext) {
+    @apply rounded-l-none rounded-r-lg;
+    border-left: none;
+}
+
+:deep(.p-inputgroup .p-inputtext:focus) {
+    border-left: 2px solid #00A3E0;
+}
+
+:deep(.p-inputgroup .p-inputtext:focus ~ .p-inputgroup-addon),
+:deep(.p-inputgroup .p-inputtext:focus + .p-inputgroup-addon) {
+    border-color: #00A3E0;
+}
+
+:deep(.p-inputgroup .p-float-label .p-inputtext:focus ~ .p-inputgroup-addon),
+:deep(.p-inputgroup .p-float-label .p-inputtext:focus + .p-inputgroup-addon) {
+    border-color: #00A3E0;
+}
+
+:deep(.p-inputtext:focus) {
+    outline: none;
+    border-color: #00A3E0;
+    box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.1);
+}
+
+:deep(.p-inputtext.p-invalid) {
+    border-color: #EE2183;
+}
+
+:deep(.p-inputtext.p-invalid:focus) {
+    border-color: #EE2183;
+    box-shadow: 0 0 0 3px rgba(238, 33, 131, 0.1);
+}
+
+/* Estilos para FloatLabel */
+:deep(.p-float-label) {
+    @apply w-full;
+}
+
+:deep(.p-float-label label) {
+    @apply text-gray-600;
+    font-size: 0.875rem;
+}
+
+:deep(.p-float-label input:focus ~ label),
+:deep(.p-float-label input.p-filled ~ label) {
+    color: #00A3E0;
+}
+
+:deep(.p-float-label input.p-invalid ~ label) {
+    color: #EE2183;
+}
+
+/* Hover effect */
+:deep(.p-inputtext:hover:not(:disabled)) {
+    border-color: #00A3E0;
+}
+
+/* Placeholder styling */
+:deep(.p-inputtext::placeholder) {
+    @apply text-gray-400;
+}
+
+/* Estilos para InputNumber */
+:deep(.p-inputnumber) {
+    @apply w-full;
+}
+
+:deep(.p-inputnumber .p-inputtext) {
+    @apply w-full px-4 py-3 border-2 rounded-lg transition-all duration-200;
+    border-color: #e5e7eb;
+    background-color: #ffffff;
+    font-size: 16px !important; /* Evita zoom automático en móviles */
+}
+
+:deep(.p-inputnumber .p-inputtext:focus) {
+    outline: none;
+    border-color: #00A3E0;
+    box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.1);
+}
+
+:deep(.p-inputnumber .p-inputtext:hover:not(:disabled)) {
+    border-color: #00A3E0;
+}
+
+/* Estilos para SelectButton */
+:deep(.p-selectbutton) {
+    @apply flex flex-wrap gap-2;
+}
+
+:deep(.p-selectbutton .p-button) {
+    @apply flex-1 min-w-[120px] px-4 py-3 border-2 rounded-lg transition-all duration-200;
+    border-color: #e5e7eb;
+    background-color: #ffffff;
+    color: #374151;
+}
+
+:deep(.p-selectbutton .p-button:hover) {
+    border-color: #00A3E0;
+    background-color: #f0f9ff;
+}
+
+:deep(.p-selectbutton .p-button.p-highlight) {
+    background-color: #00A3E0;
+    border-color: #00A3E0;
+    color: white;
+}
+
+:deep(.p-selectbutton .p-button.p-highlight:hover) {
+    background-color: #0090c7;
+    border-color: #0090c7;
+}
+
+/* SelectButton dark — para PrimeVue 4 togglebutton */
+:global(html.dark) :deep(.p-selectbutton .p-button),
+:global(html.dark) :deep(.p-selectbutton .p-togglebutton) {
+    background-color: #1e293b !important;
+    border-color: #64748b !important;
+    color: #f1f5f9 !important;
+}
+
+:global(html.dark) :deep(.p-selectbutton .p-button:hover),
+:global(html.dark) :deep(.p-selectbutton .p-togglebutton:hover) {
+    background-color: #334155 !important;
+    border-color: #93c5fd !important;
+    color: #ffffff !important;
+}
+
+:global(html.dark) :deep(.p-selectbutton .p-button.p-highlight),
+:global(html.dark) :deep(.p-selectbutton .p-togglebutton.p-highlight),
+:global(html.dark) :deep(.p-selectbutton [data-p="checked"]),
+:global(html.dark) :deep(.p-selectbutton [data-p~="checked"]),
+:global(html.dark) :deep(.p-selectbutton [data-p-checked="true"]) {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+/* Estilos para ToggleSwitch */
+:deep(.p-inputswitch) {
+    width: 3rem;
+    height: 1.75rem;
+}
+
+:deep(.p-inputswitch .p-inputswitch-slider) {
+    background: #e5e7eb;
+    transition: background-color 0.2s;
+}
+
+:deep(.p-inputswitch.p-inputswitch-checked .p-inputswitch-slider) {
+    background: #00A3E0;
+}
+
+/* Dark mode de inputs: ver html.dark reglas en main.css */
+
+/* Estilos para la guía del formulario */
+.form-guide {
+    @apply mb-6;
+}
+
+.guide-text {
+    @apply text-base text-gray-600;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-grid {
+        @apply grid-cols-1;
+    }
+
+    .form-container {
+        @apply p-4;
+    }
+
+    .form-title {
+        @apply text-2xl;
+    }
+
+    :deep(.p-selectbutton) {
+        @apply flex-col;
+    }
+
+    :deep(.p-selectbutton .p-button) {
+        @apply w-full;
+    }
+}
+

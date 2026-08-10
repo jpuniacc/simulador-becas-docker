@@ -1,0 +1,2 @@
+export const MODO_CARRERA_POSTGRADO : 'MULTIPLE' | 'UNICA' = 'UNICA';
+export const ANIO_POSTULACION = 2026;

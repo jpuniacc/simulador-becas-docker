@@ -1,0 +1,16 @@
+# robots.txt para Simulador de Becas UNIACC
+
+User-agent: *
+Allow: /
+
+# Permitir acceso a recursos estáticos
+Allow: /assets/
+Allow: /favicon.ico
+
+# Bloquear acceso a rutas de prueba/desarrollo
+Disallow: /test-carreras
+Disallow: /test-deciles
+
+# Sitemap
+Sitemap: https://simulador.uniacc.cl/sitemap.xml
+

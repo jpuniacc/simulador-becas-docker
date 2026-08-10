@@ -1,0 +1,32 @@
+services:
+  simulador-becas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_CRM_URL: ${VITE_CRM_URL}
+        VITE_CRM_PROXY_HOSTNAME: ${VITE_CRM_PROXY_HOSTNAME}
+    container_name: simulador-becas
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      CRM_URL: ${CRM_URL}
+      CRM_PROXY_HOSTNAME: ${CRM_PROXY_HOSTNAME}
+    # Sin ports: — acceso solo por Traefik (:9080)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_default"
+      - "traefik.http.routers.simulador-becas.rule=Host(`simulador-dev.uniacc.cl`)"
+      - "traefik.http.routers.simulador-becas.entrypoints=web"
+      - "traefik.http.routers.simulador-becas.priority=200"
+      - "traefik.http.services.simulador-becas.loadbalancer.server.port=80"
+    networks:
+      - traefik_default
+
+networks:
+  traefik_default:
+    external: true

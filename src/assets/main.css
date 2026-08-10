@@ -1,0 +1,1100 @@
+@import './base.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables CSS para el tema híbrido UNIACC */
+:root {
+  /* Fondos */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-dark: #1a1a1a;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f3f4;
+
+  /* Textos */
+  --text-primary: #1a1a1a;
+  --text-secondary: #6c757d;
+  --text-light: #ffffff;
+  --text-muted: #9ca3af;
+
+  /* Colores UNIACC */
+  --uniacc-blue: #0056B3;
+  --uniacc-pink: #FF007F;
+  --uniacc-green: #00FF00;
+  --uniacc-orange: #FF6B35;
+  --uniacc-orange-light: #fb923c;
+  --uniacc-purple: #8d01b3;
+  --uniacc-purple-light: #c084fc;
+
+  /* Estados */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
+
+/* Tema oscuro */
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-dark: #1a1a1a;
+  --bg-card: #1e293b;
+  --bg-hover: #334155;
+
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  --text-light: #ffffff;
+  --text-muted: #64748b;
+}
+
+/* Clases utilitarias personalizadas UNIACC */
+.bg-uniacc-blue { background-color: var(--uniacc-blue); }
+.text-uniacc-blue { color: var(--uniacc-blue); }
+.border-uniacc-blue { border-color: var(--uniacc-blue); }
+
+.bg-uniacc-pink { background-color: var(--uniacc-pink); }
+.text-uniacc-pink { color: var(--uniacc-pink); }
+.border-uniacc-pink { border-color: var(--uniacc-pink); }
+
+.bg-uniacc-green { background-color: var(--uniacc-green); }
+.text-uniacc-green { color: var(--uniacc-green); }
+.border-uniacc-green { border-color: var(--uniacc-green); }
+
+.bg-uniacc-orange { background-color: var(--uniacc-orange); }
+.text-uniacc-orange { color: var(--uniacc-orange); }
+.border-uniacc-orange { border-color: var(--uniacc-orange); }
+
+.bg-uniacc-orange-light { background-color: var(--uniacc-orange-light); }
+.text-uniacc-orange-light { color: var(--uniacc-orange-light); }
+.border-uniacc-orange-light { border-color: var(--uniacc-orange-light); }
+
+.bg-uniacc-purple { background-color: var(--uniacc-purple); }
+.text-uniacc-purple { color: var(--uniacc-purple); }
+.border-uniacc-purple { border-color: var(--uniacc-purple); }
+
+.bg-uniacc-purple-light { background-color: var(--uniacc-purple-light); }
+.text-uniacc-purple-light { color: var(--uniacc-purple-light); }
+.border-uniacc-purple-light { border-color: var(--uniacc-purple-light); }
+
+/* --- estilos para stepper - pasos completados --- */
+/* Número del paso */
+.p-step-number[data-p~="completed"] {
+  color: var(--p-primary-500) !important;
+}
+
+/* Texto del paso (título) */
+.p-step[data-p~="completed"] .p-step-title,
+.p-step-header[data-p~="completed"] .p-step-title {
+  color: var(--p-primary-500) !important;
+}
+
+
+/* Estilos para el botón seleccionado */
+.nivel-educativo-select [data-p="checked"],
+.paes-select-button [data-p="checked"],
+.modalidad-select [data-p="checked"],
+.tipo-programa-select-button [data-p="checked"] {
+  background-color: var(--p-button-primary-background) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  border-radius: 8px;
+  transition: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Dark: checked SelectButton no hereda el look claro lavado */
+html.dark .nivel-educativo-select [data-p="checked"],
+html.dark .paes-select-button [data-p="checked"],
+html.dark .modalidad-select [data-p="checked"],
+html.dark .tipo-programa-select-button [data-p="checked"],
+html.dark .paes-select-button [data-p~="checked"],
+html.dark .paes-select-button .p-togglebutton-checked,
+html.dark .paes-select-button .p-highlight {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border: 1px solid #2563eb !important;
+}
+
+/* Aplicar variables globales */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#app {
+  min-height: 100vh;
+  font-weight: normal;
+}
+
+
+
+/* Estilos para el modal del wizard */
+.wizard-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+}
+
+.wizard-overlay {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+.wizard-modal-container {
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.wizard-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Estilos para el contenido scrolleable */
+.wizard-content {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.wizard-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wizard-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.wizard-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.wizard-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Estilos para la navegación del wizard */
+.wizard-navigation {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 1.5rem;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 220.9 39.3% 11%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 224 71.4% 4.1%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 220.9 39.3% 11%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 216 12.2% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Evitar zoom automático en móviles al enfocar inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Estilos personalizados para Toast de PrimeVue - Lista de campos faltantes */
+.p-toast-message-error .p-toast-detail {
+  font-size: 0.875rem;
+  white-space: pre-line;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+}
+
+
+.uniacc-theme, body  {
+  --p-primary-900: #1E3F56; /* darkest */
+  --p-primary-700: #305F7B;
+  --p-primary-500: #4D98C5; /* 🎯 primary */
+  --p-primary-300: #7AB2D4;
+  --p-primary-100: #B5D9EB; /* lightest */
+
+  --p-secondary-900: #951552; /* darkest */
+  --p-secondary-700: #D82B6F;
+  --p-secondary-500: #EE2183; /* 🎯 primary */
+  --p-secondary-300: #F259A2;
+  --p-secondary-100: #F78CBC; /* lightest */
+
+  --p-tertiary-900: #9F3900; /* darkest */
+  --p-tertiary-700: #CC4A00;
+  --p-tertiary-500: #FF5B00; /* 🎯 primary */
+  --p-tertiary-300: #FF8440;
+  --p-tertiary-100: #FFAD80; /* lightest */
+
+  --p-dark-background-900 : #1E1E1E;
+  --p-dark-background-100 : #FFFFFF;
+
+  /* Core */
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-contrast-color: #ffffff;
+
+  /* Highlight & selection */
+  --p-highlight-bg: var(--p-primary-100);
+  --p-highlight-color: var(--p-primary-900);
+
+  /* Focus */
+  --p-focus-ring-color: var(--p-primary-300);
+
+  --p-button-primary-background: var(--p-primary-500);
+  --p-button-primary-border-color: var(--p-primary-500);
+
+  --p-button-primary-hover-background: var(--p-primary-700);
+  --p-button-primary-hover-border-color: var(--p-primary-700);
+
+  --p-button-primary-active-background: var(--p-primary-900);
+  --p-button-primary-active-border-color: var(--p-primary-900);
+
+  --p-checkbox-checked-background: var(--p-primary-500);
+  --p-checkbox-checked-border-color: var(--p-primary-500);
+
+  --p-radio-checked-background: var(--p-primary-500);
+  --p-radio-checked-border-color: var(--p-primary-500);
+
+  --p-stepper-step-number-active-background: var(--p-primary-500);
+  --p-stepper-step-number-active-color: #ffffff;
+
+  --p-stepper-step-title-active-color: var(--p-primary-700);
+
+
+  --p-checkbox-hover-border-color: var(--p-primary-300);
+  --p-checkbox-hover-background: transparent;
+  --p-checkbox-checked-hover-background: var(--p-primary-700);
+  --p-checkbox-checked-hover-border-color: var(--p-primary-700);
+
+  --p-input-focus-border-color: var(--p-primary-500);
+  --p-input-focus-ring-color: var(--p-primary-300);
+  --p-inputtext-focus-border-color: var(--p-primary-500);
+  --p-dropdown-focus-border-color: var(--p-primary-500);
+  --p-floatlabel-active-color: var(--p-primary-700);
+  --p-floatlabel-focus-color: var(--p-primary-500);
+
+  --p-datepicker-date-selected-background: var(--p-primary-500);
+--p-datepicker-date-selected-color: #ffffff;
+
+--p-datepicker-date-selected-hover-background: var(--p-primary-700);
+--p-datepicker-date-selected-hover-color: #ffffff;
+--p-datepicker-date-today-border-color: var(--p-primary-500);
+--p-datepicker-date-today-color: var(--p-primary-700);
+
+--p-button-text-success-color: var(--p-primary-500);
+--p-button-text-success-hover-color: var(--p-primary-700);
+
+
+.p-step:has(~ .p-step-active) .p-stepper-separator {
+  background: var(--p-primary-500) !important;
+}
+
+.p-select-option.p-select-option-selected {
+  background: var(--p-primary-500) !important;
+  color: #ffffff !important;
+}
+
+/* forzar fecha seleccionada en el datepicker */
+  .p-datepicker {
+    --p-datepicker-date-selected-background: var(--p-primary-500) !important;
+    --p-datepicker-date-selected-color: #ffffff !important;
+  }
+
+  .p-datepicker {
+    --p-datepicker-date-selected-hover-background: var(--p-primary-700) !important;
+    --p-datepicker-date-selected-hover-color: #ffffff !important;
+  }
+
+  .p-datepicker.p-component {
+    --p-datepicker-date-selected-background: var(--p-primary-500);
+  }
+
+  .div-enfasis--primary {
+    border-left: 4px solid var(--p-primary-500);
+    padding: 0.25rem 0.25rem 0.25rem 1rem;
+  }
+  .div-enfasis--secondary {
+    border-left: 4px solid var(--p-secondary-500);
+    padding: 0.25rem 0.25rem 0.25rem 1rem;
+  }
+  .div-enfasis--tertiary {
+    border-left: 4px solid var(--p-tertiary-500);
+    padding: 0.25rem 0.25rem 0.25rem 1rem;
+  }
+
+}
+
+
+/* Stepper sticky — soporte tema oscuro (clase .dark en html) */
+html.dark .p-steplist {
+  background-color: var(--bg-primary) !important;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.35), 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .main-container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html.dark .content-container,
+html.dark .stepper-panel {
+  color: var(--text-primary);
+}
+
+/* Formularios / inputs PrimeVue en tema oscuro */
+html.dark .form-subtitle,
+html.dark .guide-text {
+  color: #9ca3af;
+}
+
+html.dark .p-inputtext,
+html.dark .p-select,
+html.dark .p-multiselect,
+html.dark .p-datepicker-input,
+html.dark .p-textarea {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+html.dark .p-inputtext::placeholder,
+html.dark .p-textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+html.dark .p-inputgroup-addon {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+html.dark .p-select-overlay,
+html.dark .p-multiselect-overlay,
+html.dark .p-datepicker-panel {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Stepper titles / numbers — contraste en oscuro */
+html.dark .p-step-title,
+html.dark .p-step .p-step-title {
+  color: #cbd5e1 !important;
+}
+
+html.dark .p-step-active .p-step-title,
+html.dark .p-step[data-p~="active"] .p-step-title {
+  color: #93c5fd !important;
+}
+
+html.dark .p-step-number {
+  color: #e2e8f0 !important;
+  border-color: #64748b !important;
+}
+
+html.dark .p-step-active .p-step-number,
+html.dark .p-step[data-p~="active"] .p-step-number {
+  background-color: var(--p-primary-500) !important;
+  color: #ffffff !important;
+  border-color: var(--p-primary-500) !important;
+}
+
+/* Banner Message info */
+html.dark .p-message,
+html.dark .p-message-info {
+  background-color: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+  color: #e0f2fe !important;
+}
+
+html.dark .p-message .p-message-text,
+html.dark .p-message .p-message-content,
+html.dark .p-message .font-semibold,
+html.dark .p-message span,
+html.dark .p-message .text-gray-600 {
+  color: #e0f2fe !important;
+}
+
+html.dark .p-message .p-message-icon,
+html.dark .p-message .pi {
+  color: #93c5fd !important;
+}
+
+/* Labels y textos de formulario */
+html.dark .form-label,
+html.dark .nivel-educativo-label,
+html.dark .colegio-label,
+html.dark .checkbox-label,
+html.dark label {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-gray-500,
+html.dark .text-gray-600,
+html.dark .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-gray-800,
+html.dark .text-gray-900 {
+  color: #f1f5f9 !important;
+}
+
+html.dark .hover\:text-gray-700:hover {
+  color: #e2e8f0 !important;
+}
+
+/* Checkboxes PrimeVue + opciones */
+html.dark .p-checkbox-label,
+html.dark .checkbox-option label {
+  color: #e2e8f0 !important;
+}
+
+html.dark .nivel-educativo-icon {
+  color: #94a3b8 !important;
+}
+
+html.dark .nivel-educativo-icon:hover {
+  color: #e2e8f0 !important;
+}
+
+/* FloatLabel labels */
+html.dark .p-floatlabel label,
+html.dark .p-float-label label {
+  color: #94a3b8 !important;
+}
+
+html.dark .p-floatlabel:has(input:focus) label,
+html.dark .p-floatlabel:has(.p-inputwrapper-focus) label,
+html.dark .p-floatlabel:has(input:not(:placeholder-shown)) label {
+  color: #93c5fd !important;
+}
+
+/* Consentimiento / disclaimer */
+html.dark .consentimiento-wrapper {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(30, 64, 175, 0.2) 100%
+  ) !important;
+  border-color: rgba(147, 197, 253, 0.35) !important;
+  border-left-color: #60a5fa !important;
+}
+
+html.dark .consentimiento-title {
+  color: #e0f2fe !important;
+}
+
+html.dark .consentimiento-disclaimer {
+  color: #94a3b8 !important;
+}
+
+html.dark .consentimiento-asterisco,
+html.dark .consentimiento-icon {
+  color: #93c5fd !important;
+}
+
+/* Botón colegio y selección */
+html.dark .colegio-button {
+  color: #93c5fd !important;
+  border-color: #3b82f6 !important;
+  background-color: #1e293b !important;
+}
+
+html.dark .colegio-button:hover {
+  background-color: #334155 !important;
+  color: #e0f2fe !important;
+}
+
+html.dark .colegio-selected {
+  background-color: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+}
+
+html.dark .colegio-nombre {
+  color: #e0f2fe !important;
+}
+
+/* SelectButton PAES / financiamiento en oscuro */
+html.dark .paes-select-button.p-selectbutton .p-togglebutton,
+html.dark .paes-select-button.p-selectbutton .p-button,
+html.dark .paes-select-button .p-togglebutton,
+html.dark .paes-select-button .p-button,
+html.dark .paes-select-button [role="button"] {
+  background-color: #1e293b !important;
+  background: #1e293b !important;
+  border: 1px solid #64748b !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark .paes-select-button.p-selectbutton .p-togglebutton:hover,
+html.dark .paes-select-button .p-togglebutton:hover,
+html.dark .paes-select-button .p-button:hover {
+  background-color: #334155 !important;
+  background: #334155 !important;
+  border-color: #93c5fd !important;
+  color: #ffffff !important;
+}
+
+html.dark .paes-select-button.p-selectbutton .p-togglebutton.p-highlight,
+html.dark .paes-select-button.p-selectbutton .p-button.p-highlight,
+html.dark .paes-select-button .p-togglebutton.p-highlight,
+html.dark .paes-select-button .p-button.p-highlight,
+html.dark .paes-select-button [data-p-checked="true"],
+html.dark .paes-select-button [data-p="checked"],
+html.dark .paes-select-button [data-p~="checked"],
+html.dark .paes-select-button .p-togglebutton-checked {
+  background-color: #2563eb !important;
+  background: #2563eb !important;
+  border: 1px solid #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .paes-select-button .p-togglebutton .p-togglebutton-label,
+html.dark .paes-select-button .p-button .p-button-label,
+html.dark .paes-select-button [data-p-checked="true"] .p-togglebutton-label,
+html.dark .paes-select-button [data-p="checked"] .p-togglebutton-label {
+  color: inherit !important;
+}
+
+/* Tags de ejemplos de carrera en oscuro */
+html.dark .suggestion-tag.p-tag,
+html.dark .suggestion-tag.p-tag.p-tag-info,
+html.dark .career-suggestions .p-tag,
+html.dark .career-suggestions .suggestion-tag {
+  background: #0f172a !important;
+  background-color: #0f172a !important;
+  color: #e0f2fe !important;
+  border: 1px solid #60a5fa !important;
+}
+
+html.dark .suggestion-tag.p-tag .p-tag-label,
+html.dark .career-suggestions .p-tag .p-tag-label,
+html.dark .suggestion-tag .p-tag-label {
+  color: #e0f2fe !important;
+}
+
+html.dark .suggestion-tag.p-tag:hover,
+html.dark .career-suggestions .p-tag:hover {
+  background: #1e293b !important;
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #93c5fd !important;
+}
+
+html.dark .suggestions-label {
+  color: #e2e8f0 !important;
+}
+
+/* Autocomplete de carreras — panel suele teletransportarse al body */
+html.dark .p-autocomplete-overlay,
+html.dark .p-autocomplete-panel,
+html.dark .p-autocomplete-list-container,
+html.dark .p-autocomplete-list {
+  background-color: #1e293b !important;
+  background: #1e293b !important;
+  border-color: #64748b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .p-autocomplete-option,
+html.dark .p-autocomplete-item,
+html.dark .p-autocomplete-list .p-focus,
+html.dark li.p-autocomplete-option {
+  background-color: transparent !important;
+  color: #f8fafc !important;
+}
+
+html.dark .p-autocomplete-option:hover,
+html.dark .p-autocomplete-option.p-focus,
+html.dark .p-autocomplete-item:hover,
+html.dark .p-autocomplete-item.p-highlight {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark .carrera-option-item {
+  border-color: #475569 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .carrera-option-nombre {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+html.dark .carrera-option-details {
+  color: #cbd5e1 !important;
+}
+
+html.dark .carrera-option-duracion {
+  color: #94a3b8 !important;
+}
+
+html.dark .carrera-autocomplete .p-autocomplete-input,
+html.dark .carrera-autocomplete .p-inputtext,
+html.dark .carrera-autocomplete input {
+  background-color: #334155 !important;
+  border-color: #94a3b8 !important;
+  color: #ffffff !important;
+}
+
+html.dark .carrera-autocomplete .p-autocomplete-dropdown,
+html.dark .carrera-autocomplete .p-autocomplete-dropdown-button {
+  background-color: #475569 !important;
+  border-color: #94a3b8 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .carrera-container {
+  background-color: #1e293b !important;
+  border: 1px solid #64748b !important;
+}
+
+html.dark .carrera-container .carrera-title,
+html.dark .carrera-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.dark .carrera-container .carrera-subtitle,
+html.dark .carrera-subtitle {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+}
+
+html.dark .carrera-container .carrera-icon,
+html.dark .carrera-icon {
+  color: #93c5fd !important;
+}
+
+html.dark .carrera-container .carrera-help-text,
+html.dark .carrera-help-text {
+  color: #cbd5e1 !important;
+}
+
+html.dark .carrera-container .suggestions-label,
+html.dark .suggestions-label {
+  color: #e2e8f0 !important;
+}
+
+/* Cards de financiamiento CAE / Becas */
+html.dark .option-card {
+  background-color: #1e293b !important;
+  border-color: #64748b !important;
+}
+
+html.dark .option-card.selected {
+  background-color: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+}
+
+html.dark .option-card.error-border {
+  border-color: #ef4444 !important;
+}
+
+html.dark .option-icon {
+  background-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark .option-card.selected .option-icon {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .option-text h5,
+html.dark .option-card .option-text h5,
+html.dark .option-card h5 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.dark .option-text p,
+html.dark .option-card .option-text p,
+html.dark .option-card p {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+html.dark .financing-options-field h4,
+html.dark .financing-options-field .text-gray-500 {
+  color: #e2e8f0 !important;
+}
+
+/* ========== Results.vue — tema oscuro (global, sin scoped) ========== */
+html.dark .results-container .loading-content,
+html.dark .loading-content {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html.dark .loading-message {
+  color: #f1f5f9 !important;
+}
+
+html.dark .results-container .career-name,
+html.dark .career-name {
+  color: #93c5fd !important;
+}
+
+html.dark .results-container .p-card,
+html.dark .results-container .p-card-body,
+html.dark .results-container .p-card-content {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .summary-item.first-column-card,
+html.dark .summary-item.matricula-card,
+html.dark .summary-item.first-column-card .p-card,
+html.dark .summary-item.matricula-card .p-card,
+html.dark .summary-item.first-column-card .p-card-content,
+html.dark .summary-item.matricula-card .p-card-content,
+html.dark .summary-item.first-column-card .p-card-body,
+html.dark .summary-item.matricula-card .p-card-body {
+  background-color: #1e3a5f !important;
+}
+
+html.dark .first-column-label,
+html.dark .first-column-value,
+html.dark .summary-item.first-column-card .first-column-content > div,
+html.dark .summary-item.first-column-card .text-gray-600,
+html.dark .summary-item.first-column-card .text-gray-900,
+html.dark .summary-item.first-column-card .text-black-700 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.dark .summary-item.discount,
+html.dark .summary-item.discount .p-card,
+html.dark .summary-item.discount .p-card-content,
+html.dark .summary-item.discount .p-card-body {
+  background-color: #1e40af !important;
+}
+
+html.dark .discount-label,
+html.dark .discount-value {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.dark .summary-item.final,
+html.dark .summary-item.final .p-card,
+html.dark .summary-item.final .p-card-content,
+html.dark .summary-item.final .p-card-body {
+  background-color: #14532d !important;
+}
+
+html.dark .final-label,
+html.dark .final-cuotas,
+html.dark .final-details,
+html.dark .final-details-text {
+  color: #bbf7d0 !important;
+  -webkit-text-fill-color: #bbf7d0 !important;
+}
+
+html.dark .final-value {
+  color: #86efac !important;
+  -webkit-text-fill-color: #86efac !important;
+}
+
+html.dark .disclaimer-referencial-inner {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+  border-left-color: #60a5fa !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.dark .disclaimer-referencial-icon {
+  color: #93c5fd !important;
+}
+
+html.dark .disclaimer-referencial-text,
+html.dark .disclaimer-referencial-main {
+  color: #e2e8f0 !important;
+}
+
+html.dark .disclaimer-referencial-duration {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%) !important;
+  border-color: #3b82f6 !important;
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+}
+
+html.dark .contact-message .p-card,
+html.dark .contact-message .p-card-body,
+html.dark .contact-message .p-card-content {
+  background-color: #1e293b !important;
+}
+
+html.dark .contact-message-text,
+html.dark .simulation-question {
+  color: #e2e8f0 !important;
+}
+
+html.dark .contact-link {
+  color: #93c5fd !important;
+}
+
+html.dark .benefit-card {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html.dark .benefit-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.dark .description-text,
+html.dark .description-text-compact,
+html.dark .benefit-description,
+html.dark .benefit-description-compact,
+html.dark .becas-informativas-texto,
+html.dark .becas-informativas-texto-mobile {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+html.dark .ver-mas-button.p-button,
+html.dark .ver-mas-button {
+  background-color: #334155 !important;
+  border-color: #94a3b8 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .export-pdf-section {
+  border-color: #475569 !important;
+}
+
+html.dark .export-pdf-button.p-button,
+html.dark .export-pdf-button {
+  background-color: #1e293b !important;
+  border: 1px solid #94a3b8 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .mobile-card {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .benefits-section-title,
+html.dark .career-title,
+html.dark .detail-title {
+  color: #f1f5f9 !important;
+}
+
+/* Beneficios del Estado / FUAS — texto #797979 ilegible en oscuro */
+html.dark .info-estado-card .p-card-title span,
+html.dark .becas-internas-card .p-card-title span,
+html.dark .cae-card .p-card-title span {
+  color: #e0f2fe !important;
+}
+
+html.dark .info-estado-card .p-card-content p,
+html.dark .info-estado-card .p-card-content,
+html.dark .info-estado-card p {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+}
+
+html.dark .info-estado-card .p-card-content a,
+html.dark .info-estado-card a {
+  color: #93c5fd !important;
+  -webkit-text-fill-color: #93c5fd !important;
+}
+
+/* Filas de tablas de detalle */
+html.dark .texto-info {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+}
+
+html.dark .texto-descuento {
+  color: #86efac !important;
+  -webkit-text-fill-color: #86efac !important;
+}
+
+html.dark .detalle-arancel-card,
+html.dark .detalle-arancel-card .p-card,
+html.dark .detalle-arancel-card .p-card-body,
+html.dark .detalle-arancel-card .p-card-content {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .table-arancel th,
+html.dark .table-arancel td,
+html.dark .table-becas-internas td,
+html.dark .table-cae td,
+html.dark .table-descuentos-adicionales td {
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .table-arancel th {
+  color: #93c5fd !important;
+  background-color: #0f172a !important;
+}
+
+html.dark .career-tag.p-tag,
+html.dark .p-tag.career-tag {
+  background-color: #1e40af !important;
+  color: #ffffff !important;
+}
+
+html.dark .info-tag.p-tag,
+html.dark .p-tag.info-tag {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Medio de pago / cuotas */
+html.dark .payment-label {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+}
+
+html.dark .slider-value {
+  background-color: #334155 !important;
+  border-color: #64748b !important;
+  color: #ffffff !important;
+}
+
+html.dark .payment-simulation-card .p-card,
+html.dark .payment-simulation-card .p-card-body,
+html.dark .payment-simulation-card .p-card-content {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+/* Becas adicionales — descripciones */
+html.dark .benefit-card .description-text,
+html.dark .benefit-card .description-text-compact,
+html.dark .benefit-card p,
+html.dark .benefit-description p,
+html.dark .benefit-description-compact p {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+html.dark .benefit-type,
+html.dark .benefit-card .text-gray-500,
+html.dark .benefit-card .text-gray-600,
+html.dark .benefit-card .text-xs {
+  color: #94a3b8 !important;
+}
+
+html.dark .ver-mas-button.p-button,
+html.dark .ver-mas-button.p-button-outlined,
+html.dark .benefit-action .p-button {
+  background-color: transparent !important;
+  border: 1px solid #94a3b8 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .ver-mas-button.p-button .p-button-label,
+html.dark .ver-mas-button.p-button .p-button-icon {
+  color: #f8fafc !important;
+}
+
+html.dark .export-pdf-button.p-button .p-button-label,
+html.dark .export-pdf-button.p-button .p-button-icon {
+  color: #f8fafc !important;
+}
+
