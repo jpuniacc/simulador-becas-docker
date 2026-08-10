@@ -797,7 +797,7 @@ defineExpose({
                 <table class="table-cae">
                   <tbody>
                     <tr>
-                      <td class="texto-info">Máximo Financiamiento CAE</td>
+                      <td class="texto-info">% Arancel referencial total al que se está accediendo con CAE</td>
                       <td>
                         <Tag class="info-tag">CAE</Tag>
                       </td>

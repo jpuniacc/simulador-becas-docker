@@ -750,7 +750,7 @@ const handleSaveSimulation = async () => {
                 </tr>
                 <tr class="table-row subtotal-row">
                   <td class="table-cell font-semibold text-purple-700" colspan="3">
-                    Subtotal después de Beneficios del Estado
+                    Subtotal después de Becas Estatales
                   </td>
                   <td class="table-cell text-right font-semibold text-purple-700">
                     {{ formatCurrency(arancelDespuesBecasEstado) }}
@@ -843,16 +843,16 @@ const handleSaveSimulation = async () => {
                 </tr>
               </template>
 
-              <!-- Mensaje si no hay beneficios del estado elegibles pero el usuario marcó que usa -->
+              <!-- Mensaje si no hay becas estatales elegibles pero el usuario marcó que usa -->
               <template v-if="formData.usaBecasEstado && becasEstadoElegibles.length > 0 && becasEstadoAplicadas.length === 0">
                 <tr class="table-row section-header-row">
                   <td class="table-cell font-bold text-purple-700" colspan="4">
-                    Beneficios del Estado
+                    Becas Estatales
                   </td>
                 </tr>
                 <tr class="table-row info-row">
                   <td class="table-cell text-sm text-gray-600 italic" colspan="4">
-                    No cumples con los requisitos para las becas del estado disponibles
+                    No cumples con los requisitos para las becas estatales disponibles
                   </td>
                 </tr>
               </template>

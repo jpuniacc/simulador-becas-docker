@@ -185,9 +185,10 @@ const showDecilSelection = computed(() => {
     return piensaUsarFinanciamiento.value
 })
 
-// Aviso: CAE requiere haber rendido la PAES
-const showCaeRequiresPaesWarning = computed(() => {
-    return formData.value.rendioPAES === false && formData.value.planeaUsarCAE === true
+// Aviso: CAE / becas estatales requieren cumplir requisitos Mineduc (incl. PAES)
+const showFinanciamientoPaesWarning = computed(() => {
+    return formData.value.rendioPAES === false
+        && (formData.value.planeaUsarCAE === true || formData.value.usaBecasEstado === true)
 })
 
 // Computed para opciones del dropdown de deciles
@@ -738,12 +739,46 @@ onUnmounted(() => {
                         </div>
                     </div>
                     <Message
-                        v-if="showCaeRequiresPaesWarning"
+                        v-if="showFinanciamientoPaesWarning"
                         severity="warn"
                         :closable="false"
-                        class="mt-3"
+                        class="mt-3 financiamiento-paes-warning"
                     >
-                        Para poder optar al CAE debes haber rendido la PAES.
+                        <p class="font-semibold mb-2">
+                            Para postular al CAE y/u obtener becas estatales debes cumplir los requisitos del Mineduc;
+                            uno de ellos es haber rendido la PAES.
+                        </p>
+                        <p class="mb-2 text-sm">
+                            En universidad (ingreso a primer año), el requisito académico habitual es un promedio igual o superior
+                            a 485 puntos en Competencia Lectora y Competencia Matemática 1, según el mejor puntaje de los
+                            instrumentos PAES vigentes para el proceso de admisión.
+                        </p>
+                        <p class="mb-2 text-sm">
+                            Pueden existir excepciones (por ejemplo NEM ≥ 5,29 en ciertos casos) y exigencias adicionales
+                            de cada institución. Revisa el detalle oficial:
+                        </p>
+                        <ul class="text-sm list-disc pl-5 space-y-1">
+                            <li>
+                                <a
+                                    href="https://portal.beneficiosestudiantiles.cl/becas-y-creditos/credito-con-garantia-estatal-cae"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="underline font-medium"
+                                >
+                                    Crédito con Garantía Estatal (CAE)
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://portal.beneficiosestudiantiles.cl/becas/becas-de-arancel"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="underline font-medium"
+                                >
+                                    Becas de arancel
+                                </a>
+                            </li>
+                        </ul>
                     </Message>
                 </div>
 
