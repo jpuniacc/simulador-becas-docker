@@ -130,6 +130,41 @@ export async function trackSimulacionExitosa({
   return eventId
 }
 
+export interface RegistroConfirmadoServidorPayload {
+  segmentacion?: string
+  carrera?: string | null
+  prospectoId?: string | null
+  hubspotContactId?: string | null
+  crmProvider?: string
+}
+
+/**
+ * Evento GTM tras registro confirmado en servidor (HubSpot + prospecto en Supabase).
+ * Independiente de `simulacion_exitosa`; no debe bloquearse por fallos previos del CRM
+ * si el prospecto igual se guardó — el call site decide cuándo emitirlo.
+ */
+export function trackRegistroConfirmadoServidor({
+  segmentacion,
+  carrera,
+  prospectoId,
+  hubspotContactId,
+  crmProvider = 'hubspot'
+}: RegistroConfirmadoServidorPayload): void {
+  const modalidad = mapSegmentacionToModalidad(segmentacion)
+  const carreraNombre = (carrera ?? '').trim()
+
+  const payload = {
+    modalidad,
+    carrera: carreraNombre,
+    prospecto_id: prospectoId ?? null,
+    hubspot_contact_id: hubspotContactId ?? null,
+    crm_provider: crmProvider
+  }
+
+  console.log('[dataLayer] registro_confirmado_servidor', payload)
+  pushToDataLayer('registro_confirmado_servidor', payload)
+}
+
 /**
  * Vincula un evento analytics ya persistido con prospecto y/o simulación.
  */

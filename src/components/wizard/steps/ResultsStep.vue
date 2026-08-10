@@ -25,7 +25,8 @@ import { formatCurrency } from '@/utils/formatters'
 import { useSimuladorStore } from '@/stores/simuladorStore'
 import { useProspectos } from '@/composables/useProspectos'
 import { useCRM } from '@/composables/useCRM'
-import html2pdf from 'html2pdf.js'
+import { trackRegistroConfirmadoServidor } from '@/utils/analytics'
+import { exportSimulacionPdf } from '@/utils/pdfSimulacion'
 
 // Props
 interface Props {
@@ -350,39 +351,47 @@ const handleShare = () => {
 
 const handleExportPDF = async () => {
   try {
-    if (!pdfContentRef.value) {
-      console.warn('No se encontró el elemento a capturar')
+    if (!calculoBecas.value || !carreraInfo.value) {
+      console.warn('No hay datos para generar el PDF')
       return
     }
 
-    // Configuración para html2pdf.js
-    const options = {
-      margin: [10, 10, 10, 10],
-      filename: 'simulacion-uniacc.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        letterRendering: true
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait' as const,
-        compress: true
-      },
-      pagebreak: {
-        mode: ['avoid-all', 'css', 'legacy'],
-        before: '.page-break-before',
-        after: '.page-break-after',
-        avoid: ['.no-break', 'table', 'tr']
-      }
-    }
+    const fd = formData.value
+    const filename = exportSimulacionPdf({
+      nombre: fd.nombre || '',
+      apellido: fd.apellido || '',
+      identificacion: fd.identificacion || '',
+      tipoIdentificacion: fd.tipoIdentificacion || 'rut',
+      email: fd.email || '',
+      carreraNombre: carreraInfo.value.nombre_programa || fd.carrera || '',
+      nivelAcademico: carreraInfo.value.nivel_academico,
+      modalidadPrograma: carreraInfo.value.modalidad_programa,
+      duracionPrograma: carreraInfo.value.duracion_programa,
+      arancelBase: calculoBecas.value.arancel_base || 0,
+      matricula: carreraInfo.value.matricula || 0,
+      becasInternas: becasAplicadas.value.map((b: any) => ({
+        nombre: b.beca?.nombre || 'Beca',
+        descuentoAplicado: b.descuento_aplicado,
+        montoDescuento: b.monto_descuento,
+        tipoDescuento: b.beca?.tipo_descuento || null,
+        procesoEvaluacion: b.beca?.proceso_evaluacion || null
+      })),
+      arancelDespuesBecasInternas: arancelDespuesBecasInternas.value,
+      usaBecasEstado: !!fd.usaBecasEstado,
+      planeaUsarCAE: !!fd.planeaUsarCAE,
+      descuentoCae: descuentoCae.value,
+      arancelFinal: arancelFinalReal.value,
+      totalDescuentos: descuentoTotalRealConCae.value,
+      descuentoTotalConAdicionales: descuentoTotalRealConCae.value,
+      arancelFinalConDescuentos: arancelFinalReal.value,
+      matriculaFinalConDescuentos: carreraInfo.value.matricula || 0,
+      totalPagar: arancelFinalReal.value + (carreraInfo.value.matricula || 0),
+      numeroCuotas: 10,
+      valorMensual: Math.round((arancelFinalReal.value + (carreraInfo.value.matricula || 0)) / 10),
+      medioPagoLabel: null
+    })
 
-    // Generar PDF directamente desde HTML
-    await html2pdf().set(options).from(pdfContentRef.value).save()
+    console.log('[PDF] Generado con pdfmake:', filename)
   } catch (e) {
     console.error('No se pudo generar el PDF:', e)
   }
@@ -535,27 +544,40 @@ const handleSaveSimulation = async () => {
       return
     }
 
-    // JPS: Paso 3: Enviar al CRM (solo si hay consentimiento)
-    // Modificación: Enviar al CRM después de guardar la simulación exitosamente
-    // Funcionamiento: Si hay consentimiento, se envía al CRM y se actualiza el prospecto con la respuesta
+    // Paso 3: Enviar a HubSpot (solo si hay consentimiento)
+    let respuestaCRM: any = null
     if (formData.value.consentimiento_contacto && prospectoId.value) {
       try {
         const userAgent = navigator.userAgent
         const carreraInfoValue = carreraInfo.value
-        const crmJson = createJSONcrm(formData.value, carreraInfoValue, userAgent)
-        
-        // JPS: Enviar al CRM
-        // Modificación: Enviar datos al CRM después de guardar la simulación
-        // Funcionamiento: Obtiene la respuesta del CRM para guardarla en el prospecto
-        const respuestaCRM = await enviarCRM(formData.value, carreraInfoValue, userAgent)
-        
-        if (import.meta.env.DEV) {
-          console.log('✅ CRM enviado exitosamente:', respuestaCRM)
-        }
+        console.log('[HubSpot] Enviando contacto...', {
+          email: formData.value.email,
+          prospectoId: prospectoId.value
+        })
+        respuestaCRM = await enviarCRM(formData.value, carreraInfoValue, userAgent, {
+          segmentacion: formData.value.segmentacion || undefined
+        })
+        console.log('[HubSpot] Respuesta:', respuestaCRM)
       } catch (error) {
-        console.warn('No se pudo enviar al CRM:', error)
-        // Continuar aunque falle el CRM
+        console.warn('[HubSpot] No se pudo enviar:', error)
       }
+    }
+
+    // GTM: registro confirmado en servidor
+    if (prospectoId.value || (respuestaCRM && !respuestaCRM.skipped && respuestaCRM.hubspot_contact_id)) {
+      console.log('[GTM] Disparando registro_confirmado_servidor')
+      trackRegistroConfirmadoServidor({
+        segmentacion: formData.value.segmentacion || undefined,
+        carrera: formData.value.carrera,
+        prospectoId: prospectoId.value,
+        hubspotContactId: respuestaCRM?.hubspot_contact_id || respuestaCRM?.id || null,
+        crmProvider: 'hubspot'
+      })
+    } else {
+      console.warn('[GTM] registro_confirmado_servidor NO disparado', {
+        prospectoId: prospectoId.value,
+        respuestaCRM
+      })
     }
 
   } catch (err: any) {

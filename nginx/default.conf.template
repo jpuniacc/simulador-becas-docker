@@ -9,13 +9,11 @@ server {
         add_header Content-Type text/plain;
     }
 
-    # Proxy CRM (reemplazo de Netlify Function crm-proxy).
-    # Host debe ser el del CRM upstream (CRM_PROXY_HOSTNAME), no el del simulador;
-    # si se envía simuladordev/simulador.uniacc.cl el CRM responde 404.
-    location = /api/crm-proxy {
-        proxy_pass ${CRM_URL};
+    # Proxy HubSpot sidecar (token solo en hubspot-api)
+    location = /api/hubspot-contact {
+        proxy_pass http://hubspot-api:3000/hubspot/contact;
         proxy_http_version 1.1;
-        proxy_set_header Host ${CRM_PROXY_HOSTNAME};
+        proxy_set_header Host $host;
         proxy_set_header Content-Type $content_type;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -1,4 +1,23 @@
 services:
+  hubspot-api:
+    build:
+      context: ./server/hubspot
+      dockerfile: Dockerfile
+    container_name: simulador-hubspot-api
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      PORT: "3000"
+      HUBSPOT_ACCESS_TOKEN: ${HUBSPOT_ACCESS_TOKEN:-}
+      HUBSPOT_BASE_URL: ${HUBSPOT_BASE_URL:-https://api.hubapi.com}
+    ports:
+      # Host :3000 para npm run dev (Vite proxea /api/hubspot-contact aquí).
+      # El SPA en Docker sigue usando http://hubspot-api:3000 por red interna.
+      - "3000:3000"
+    networks:
+      - traefik_default
+
   simulador-becas:
     build:
       context: .
@@ -7,16 +26,12 @@ services:
       args:
         VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
-        VITE_CRM_URL: ${VITE_CRM_URL}
-        VITE_CRM_PROXY_HOSTNAME: ${VITE_CRM_PROXY_HOSTNAME}
     container_name: simulador-becas
     restart: unless-stopped
     env_file:
       - ./.env
-    environment:
-      CRM_URL: ${CRM_URL}
-      CRM_PROXY_HOSTNAME: ${CRM_PROXY_HOSTNAME}
-    # Sin ports: — acceso solo por Traefik (:9080)
+    depends_on:
+      - hubspot-api
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_default"

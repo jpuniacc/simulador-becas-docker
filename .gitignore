@@ -8,7 +8,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-.DS_Store
 dist
 dist-ssr
 coverage
@@ -35,3 +34,6 @@ coverage
 .env.*
 !.env.example
 !.env.docker.example
+
+# Sidecar deps
+server/hubspot/node_modules

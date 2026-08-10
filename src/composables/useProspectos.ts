@@ -23,11 +23,15 @@ export function useProspectos() {
     [key: string]: any
   }
 
-  // Tipo para respuesta del CRM
+  // Tipo para respuesta del CRM (Mantis o HubSpot)
   type RespuestaCRM = {
     cod_respuesta?: number
     des_respuesta?: string
     _crmEndpointUrl?: string
+    provider?: string
+    hubspot_contact_id?: string | null
+    id?: string
+    created?: boolean
     [key: string]: any
   }
 
@@ -156,18 +160,18 @@ export function useProspectos() {
         // JSON del CRM enviado al sistema de CRM
         prospecto_crm: prospectoCrm || null,
 
-        // JPS: Respuesta del CRM
-        // Modificación: Guardar la respuesta del CRM con URL real del endpoint, código y descripción
-        // Funcionamiento: Se guarda un objeto JSON con:
-        // - URL_Endpoint_crm: URL real del CRM usado (ej: https://crmadmision.uniacc.cl/webservice/formulario_web.php)
-        //   NO se guarda la URL del proxy, sino la URL real del servidor CRM
-        // - codigo_respuesta_crm: Código de respuesta del CRM (cod_respuesta)
-        // - descripcion_respuesta: Descripción de la respuesta (des_respuesta)
+        // Respuesta HubSpot
         respuesta_crm: respuestaCRM ? {
+          provider: respuestaCRM.provider || 'hubspot',
           URL_Endpoint_crm: respuestaCRM._crmEndpointUrl || null,
           codigo_respuesta_crm: respuestaCRM.cod_respuesta ?? null,
-          descripcion_respuesta: respuestaCRM.des_respuesta || null
+          descripcion_respuesta: respuestaCRM.des_respuesta || null,
+          hubspot_contact_id: respuestaCRM.hubspot_contact_id || respuestaCRM.id || null,
+          created: respuestaCRM.created ?? null,
+          correlationId: respuestaCRM.correlationId || respuestaCRM.hubspot_body?.correlationId || null
         } : null,
+
+        hubspot_contact_id: respuestaCRM?.hubspot_contact_id || respuestaCRM?.id || null,
 
         // JPS: Campos de simulación de cuotas y medios de pago
         // Modificación: Agregar campos para guardar datos de la simulación de cuotas y medios de pago

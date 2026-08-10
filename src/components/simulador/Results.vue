@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -13,13 +13,13 @@ import { useSimuladorStore } from '@/stores/simuladorStore'
 import { useDescuentosStore } from '@/stores/descuentosStore'
 import { useBecasStore, type BecasInformativas } from '@/stores/becasStore'
 import { formatCurrency, formatDate } from '@/utils/formatters'
-import { trackSimulacionExitosa, linkSimulacionExitosa } from '@/utils/analytics'
+import { trackSimulacionExitosa, linkSimulacionExitosa, trackRegistroConfirmadoServidor } from '@/utils/analytics'
 import type { FormData } from '@/types/simulador'
 import { useProspectos } from '@/composables/useProspectos'
 import { useCRM } from '@/composables/useCRM'
 import { ANIO_POSTULACION } from '@/utils/config'
 import { Award, CheckCircle, FileText, Info, Clock } from 'lucide-vue-next'
-import html2pdf from 'html2pdf.js'
+import { exportSimulacionPdf } from '@/utils/pdfSimulacion'
 import Button from 'primevue/button'
 // JPS: Imports de componentes shadcn para versión mobile con accordion
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -341,16 +341,33 @@ const handleSimulate = async () => {
         // Funcionamiento: Se envía primero al CRM, se obtiene la respuesta, y luego se guarda el prospecto
         // con la respuesta del CRM incluida en el campo respuesta_crm
         const userAgent = navigator.userAgent
-        const crmJson = createJSONcrm(simuladorStore.formData as FormData, carreraInfo.value, userAgent)
+        const becaNombre = becasAplicadas.value?.[0]?.beca?.nombre
+          ? String(becasAplicadas.value[0].beca.nombre)
+          : null
 
-        // Enviar primero al CRM para obtener la respuesta
+        // Enviar a HubSpot (único CRM)
         let respuestaCRM = null
         try {
-          respuestaCRM = await enviarCRM(simuladorStore.formData as FormData, carreraInfo.value, userAgent)
+          console.log('[HubSpot] Enviando contacto...', {
+            email: simuladorStore.formData.email,
+            consentimiento: simuladorStore.formData.consentimiento_contacto
+          })
+          respuestaCRM = await enviarCRM(
+            simuladorStore.formData as FormData,
+            carreraInfo.value,
+            userAgent,
+            {
+              segmentacion: props.segmentacion,
+              becaNombre
+            }
+          )
+          console.log('[HubSpot] Respuesta:', respuestaCRM)
         } catch (error) {
-          console.warn('No se pudo enviar al CRM:', error)
-          // Continuar aunque falle el CRM, pero sin respuesta
+          console.warn('[HubSpot] No se pudo enviar:', error)
         }
+
+        const crmJson = respuestaCRM?._prospectoPayload
+          || createJSONcrm(simuladorStore.formData as FormData, carreraInfo.value, userAgent)
 
         // Guardar el prospecto con la respuesta del CRM (si existe)
         let prospectoGuardado = null
@@ -362,8 +379,32 @@ const handleSimulate = async () => {
             crmJson,
             respuestaCRM
           )
+          console.log('[Prospecto] Guardado:', {
+            id: prospectoGuardado?.id,
+            hubspot_contact_id: prospectoGuardado?.hubspot_contact_id
+          })
         } catch (error) {
-          console.warn('No se pudo guardar el prospecto:', error)
+          console.warn('[Prospecto] No se pudo guardar:', error)
+        }
+
+        // GTM: registro confirmado en servidor (HubSpot y/o prospecto persistido)
+        if (prospectoGuardado?.id || (respuestaCRM && !respuestaCRM.skipped && respuestaCRM.hubspot_contact_id)) {
+          console.log('[GTM] Disparando registro_confirmado_servidor')
+          trackRegistroConfirmadoServidor({
+            segmentacion: props.segmentacion,
+            carrera: simuladorStore.formData.carrera,
+            prospectoId: prospectoGuardado?.id ?? null,
+            hubspotContactId: respuestaCRM?.hubspot_contact_id
+              || respuestaCRM?.id
+              || prospectoGuardado?.hubspot_contact_id
+              || null,
+            crmProvider: 'hubspot'
+          })
+        } else {
+          console.warn('[GTM] registro_confirmado_servidor NO disparado', {
+            prospectoId: prospectoGuardado?.id ?? null,
+            respuestaCRM
+          })
         }
 
         // Persistir simulación completa en tabla simulaciones (validez 7 días)
@@ -391,7 +432,7 @@ const handleSimulate = async () => {
   }
 }
 
-// Método para exportar PDF usando html2pdf.js
+// Método para exportar PDF con pdfmake (documento estructurado, no captura HTML)
 const handleExportPDF = async () => {
   try {
     if (!calculoBecas.value || !carreraInfo.value) {
@@ -399,121 +440,56 @@ const handleExportPDF = async () => {
       return
     }
 
-    // Ocultar el botón durante la generación
     isGeneratingPDF.value = true
 
-    // Esperar un momento para que el DOM se actualice
-    await new Promise(resolve => setTimeout(resolve, 300))
+    const fd = formData.value
+    const medioPagoLabel = opcionesTipoPago.find((o) => o.value === tipoPago.value)?.label || null
+    const filename = exportSimulacionPdf({
+      nombre: fd.nombre || '',
+      apellido: fd.apellido || '',
+      identificacion: fd.identificacion || '',
+      tipoIdentificacion: fd.tipoIdentificacion || 'rut',
+      email: fd.email || '',
+      carreraNombre: carreraInfo.value.nombre_programa || fd.carrera || '',
+      nivelAcademico: carreraInfo.value.nivel_academico,
+      modalidadPrograma: carreraInfo.value.modalidad_programa,
+      duracionPrograma: carreraInfo.value.duracion_programa,
+      arancelBase: calculoBecas.value.arancel_base || 0,
+      matricula: carreraInfo.value.matricula || 0,
+      becasInternas: becasAplicadas.value.map((b: any) => ({
+        nombre: b.beca?.nombre || 'Beca',
+        descuentoAplicado: b.descuento_aplicado,
+        montoDescuento: b.monto_descuento,
+        tipoDescuento: b.beca?.tipo_descuento || null,
+        procesoEvaluacion: b.beca?.proceso_evaluacion || null
+      })),
+      arancelDespuesBecasInternas: arancelDespuesBecasInternas.value,
+      usaBecasEstado: !!fd.usaBecasEstado,
+      planeaUsarCAE: !!fd.planeaUsarCAE,
+      descuentoCae: descuentoCae.value,
+      arancelFinal: arancelFinalReal.value,
+      descuentoPagoAnticipadoArancel: descuentoPagoAnticipadoArancel.value,
+      descuentoPagoAnticipadoMatricula: descuentoPagoAnticipadoMatricula.value,
+      descuentoPagoAnticipadoPctArancel: descuentoPagoAnticipadoVigente.value?.dscto_arancel ?? null,
+      descuentoPagoAnticipadoPctMatricula: descuentoPagoAnticipadoVigente.value?.dscto_matricula ?? null,
+      descuentoModoPagoArancel: descuentoModoPagoArancel.value,
+      descuentoModoPagoPct: descuentoModoPagoAplicable.value?.dscto_arancel ?? null,
+      descuentoModoPagoNombre: descuentoModoPagoAplicable.value?.nombre ?? null,
+      totalDescuentos: descuentoTotalConAdicionales.value,
+      descuentoTotalConAdicionales: descuentoTotalConAdicionales.value,
+      descuentoPorcentualTotal: descuentoPorcentualTotal.value,
+      arancelFinalConDescuentos: arancelFinalConDescuentosAdicionales.value,
+      matriculaFinalConDescuentos: matriculaFinalConDescuentosAdicionales.value,
+      totalPagar: arancelMasMatricula.value,
+      numeroCuotas: numeroCuotas.value,
+      valorMensual: valorMensual.value,
+      medioPagoLabel
+    })
 
-    // Usar html2pdf.js para generar el PDF desde el contenido HTML
-    if (pdfContentRef.value) {
-      const element = pdfContentRef.value
-
-      // JPS: Ocultar versión mobile (accordion) para PDF export
-      const mobileVersion = element.querySelector('.mobile-version') as HTMLElement
-      const originalMobileDisplay = mobileVersion?.style.display
-      if (mobileVersion) {
-        mobileVersion.style.display = 'none'
-      }
-
-      // Asegurar que la versión desktop esté visible
-      const desktopVersion = element.querySelector('.desktop-version') as HTMLElement
-      const originalDesktopDisplay = desktopVersion?.style.display
-      if (desktopVersion) {
-        desktopVersion.style.display = 'block'
-      }
-
-      // Remover temporalmente los Message de PrimeVue del DOM (causan problemas al renderizar el PDF)
-      const toRemove = Array.from(
-        element.querySelectorAll('.contact-message, .anticipado-message, .confirmation-message')
-      ) as HTMLElement[]
-
-      // Guardar referencias a los padres y posiciones para restaurar después
-      const elementsData = toRemove.map(el => ({
-        element: el,
-        parent: el.parentNode,
-        nextSibling: el.nextSibling
-      }))
-
-      // Remover elementos del DOM
-      elementsData.forEach(({ element }) => {
-        if (element.parentNode) {
-          element.parentNode.removeChild(element)
-        }
-      })
-
-      // Agregar page break después de la tabla de detalle
-      const summaryCard = element.querySelector('.summary-card') as HTMLElement
-      let pageBreakElement: HTMLElement | null = null
-      if (summaryCard && summaryCard.parentNode) {
-        // Crear un div con la clase que html2pdf.js reconoce para page breaks
-        pageBreakElement = document.createElement('div')
-        pageBreakElement.className = 'html2pdf__page-break'
-        pageBreakElement.style.height = '0'
-        pageBreakElement.style.margin = '0'
-        pageBreakElement.style.padding = '0'
-        // Insertar después del summary-card
-        summaryCard.parentNode.insertBefore(pageBreakElement, summaryCard.nextSibling)
-      }
-
-      // Esperar a que el DOM se actualice completamente
-      await nextTick()
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      try {
-        const opt: any = {
-          // Márgenes más pequeños para aprovechar la página
-          margin: [12, 20, 12, 20],
-          filename: 'simulacion-uniacc.pdf',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        }
-
-        await html2pdf().set(opt).from(element).save()
-      } finally {
-        // Remover el elemento de page break
-        if (pageBreakElement && pageBreakElement.parentNode) {
-          pageBreakElement.parentNode.removeChild(pageBreakElement)
-        }
-
-        // Restaurar elementos en su posición original
-        elementsData.forEach(({ element, parent, nextSibling }) => {
-          if (parent) {
-            if (nextSibling) {
-              parent.insertBefore(element, nextSibling)
-            } else {
-              parent.appendChild(element)
-            }
-          }
-        })
-
-        // JPS: Restaurar visibilidad de versión mobile después de exportar PDF
-        if (mobileVersion) {
-          mobileVersion.style.display = originalMobileDisplay || ''
-        }
-        if (desktopVersion) {
-          desktopVersion.style.display = originalDesktopDisplay || ''
-        }
-      }
-    }
+    console.log('[PDF] Generado con pdfmake:', filename)
   } catch (e) {
     console.error('No se pudo generar el PDF:', e)
-    // Asegurar restaurar visibilidad en caso de error
-    const element = pdfContentRef.value
-    if (element) {
-      const mobileVersion = element.querySelector('.mobile-version') as HTMLElement
-      const desktopVersion = element.querySelector('.desktop-version') as HTMLElement
-      if (mobileVersion) {
-        mobileVersion.style.display = ''
-      }
-      if (desktopVersion) {
-        desktopVersion.style.display = ''
-      }
-    }
   } finally {
-    // Restaurar el botón después de la generación
     isGeneratingPDF.value = false
   }
 }

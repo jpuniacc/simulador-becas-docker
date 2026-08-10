@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   mapSegmentacionToModalidad,
   trackSimulacionExitosa,
+  trackRegistroConfirmadoServidor,
   linkSimulacionExitosa,
   pushToDataLayer,
   getCampaignDataFromStorage
@@ -130,6 +131,26 @@ describe('analytics', () => {
 
     expect(persistSimulacionExitosaEvent).toHaveBeenCalled()
     expect(eventId).toBe('event-uuid-123')
+  })
+
+  it('trackRegistroConfirmadoServidor emite evento en dataLayer', () => {
+    trackRegistroConfirmadoServidor({
+      segmentacion: 'pregrado',
+      carrera: 'Psicología',
+      prospectoId: 'prospecto-1',
+      hubspotContactId: 'hs-99',
+      crmProvider: 'hubspot'
+    })
+
+    const dataLayer = (window as unknown as { dataLayer: Record<string, unknown>[] }).dataLayer
+    expect(dataLayer[0]).toMatchObject({
+      event: 'registro_confirmado_servidor',
+      modalidad: 'Pregrado',
+      carrera: 'Psicología',
+      prospecto_id: 'prospecto-1',
+      hubspot_contact_id: 'hs-99',
+      crm_provider: 'hubspot'
+    })
   })
 
   it('linkSimulacionExitosa delega a persistencia', async () => {

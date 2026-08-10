@@ -48,6 +48,60 @@ npm run lint
 npm run test:unit
 ```
 
+## Docker (simulador + HubSpot)
+
+Requisitos: Docker Compose v2, red externa `traefik_default`, archivo `.env` (partir de `.env.docker.example`).
+
+```bash
+cd /opt/simulador-becas
+cp .env.docker.example .env   # solo la primera vez
+# Completar al menos: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, HUBSPOT_ACCESS_TOKEN
+
+docker compose up --build -d
+```
+
+Servicios:
+
+| Contenedor | Rol |
+|------------|-----|
+| `simulador-becas` | SPA (Traefik: `simulador-dev.uniacc.cl`) |
+| `simulador-hubspot-api` | Backend HubSpot (puerto host `3000` + red Docker) |
+
+Comandos útiles:
+
+```bash
+docker compose ps
+docker compose logs -f hubspot-api
+docker compose restart hubspot-api
+curl -s http://127.0.0.1:3000/health
+```
+
+El token HubSpot vive solo en el sidecar (`.env` → `HUBSPOT_ACCESS_TOKEN`). No va en variables `VITE_*`.
+
+Detalle: [docs/hubspot-integracion.md](./docs/hubspot-integracion.md).
+
+## Desarrollo local (Vite + backend HubSpot en Docker)
+
+Para no depender de una terminal SSH con `npm start` (se cae al cerrar sesión), levanta el backend con Compose y el front con Vite:
+
+```bash
+# Backend HubSpot (queda vivo aunque cierres la sesión)
+cd /opt/simulador-becas
+docker compose up -d --build hubspot-api
+
+# Frontend
+npm install
+npm run dev -- --host 0.0.0.0
+```
+
+Vite proxea `/api/hubspot-contact` → `http://127.0.0.1:3000` (`VITE_HUBSPOT_PROXY_TARGET` en `.env`).
+
+Alternativa (solo local, se cae al cerrar la terminal):
+
+```bash
+cd server/hubspot && npm install && npm start
+```
+
 ## ⚙️ Configuración de Variables de Entorno
 
 El proyecto utiliza archivos `.env` diferentes según el ambiente. Cada rama tiene su propia configuración:
