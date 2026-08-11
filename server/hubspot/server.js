@@ -154,11 +154,19 @@ app.post('/hubspot/contact', async (req, res) => {
     }
 
     const id = result.body?.id
+    console.log('[hubspot-api] request_properties', {
+      email,
+      created,
+      id,
+      request_properties: properties,
+    })
+
     return res.status(created ? 201 : 200).json({
       provider: 'hubspot',
       id,
       created,
       properties: result.body?.properties || {},
+      request_properties: properties,
       _crmEndpointUrl: `${HUBSPOT_BASE_URL}/crm/v3/objects/contacts`,
       // Compatibilidad con useProspectos (forma Mantis-like + HubSpot)
       cod_respuesta: created ? 1 : 1,

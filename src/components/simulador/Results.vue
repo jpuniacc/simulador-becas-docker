@@ -288,6 +288,34 @@ const arancelReferenciaCae = computed(() => {
   return carreraInfo.value?.arancel_referencia || null
 })
 
+const anioArancelReferenciaCae = computed(() => {
+  const anio = carreraInfo.value?.anio_arancel_referencia
+  return anio != null && Number(anio) > 0 ? Number(anio) : null
+})
+
+/** Referencia de un año anterior al de postulación → mostrar aviso */
+const caeReferenciaDesactualizada = computed(() => {
+  return (
+    anioArancelReferenciaCae.value != null &&
+    anioArancelReferenciaCae.value < ANIO_POSTULACION
+  )
+})
+
+const tituloArancelReferencialCae = computed(() => {
+  const anio = anioArancelReferenciaCae.value
+  if (!anio) return 'Arancel Referencial CAE'
+  return caeReferenciaDesactualizada.value
+    ? `Arancel Referencial CAE ${anio}*`
+    : `Arancel Referencial CAE ${anio}`
+})
+
+/** Disclaimer solo si la referencia es de un año anterior al proceso de postulación */
+const notaCaeReferenciaDesactualizada = computed(() => {
+  const anio = anioArancelReferenciaCae.value
+  if (!anio) return ''
+  return `*Los valores mostrados corresponden al arancel de referencia CAE ${anio}.`
+})
+
 // Computed para calcular el máximo financiamiento CAE aplicable
 // El CAE financia sobre el arancel después de becas internas, pero no puede exceder el arancel_referencia
 const maximoFinanciamientoCae = computed(() => {
@@ -466,6 +494,7 @@ const handleExportPDF = async () => {
       arancelDespuesBecasInternas: arancelDespuesBecasInternas.value,
       usaBecasEstado: !!fd.usaBecasEstado,
       planeaUsarCAE: !!fd.planeaUsarCAE,
+      anioArancelReferencia: carreraInfo.value.anio_arancel_referencia ?? null,
       descuentoCae: descuentoCae.value,
       arancelFinal: arancelFinalReal.value,
       descuentoPagoAnticipadoArancel: descuentoPagoAnticipadoArancel.value,
@@ -760,20 +789,17 @@ defineExpose({
               <template #title>
                 <div>
                   <i class="pi pi-star-fill"></i>
-                  <span>Arancel referencial CAE <span
-                      v-if="carreraInfo?.anio_arancel_referencia && carreraInfo.anio_arancel_referencia < ANIO_POSTULACION">
-                      {{ carreraInfo.anio_arancel_referencia }}*</span></span>
+                  <span>{{ tituloArancelReferencialCae }}</span>
                 </div>
-                <div
-                  v-if="carreraInfo?.anio_arancel_referencia && carreraInfo.anio_arancel_referencia < ANIO_POSTULACION">
-                  <p>*Los valores mostrados corresponden al arancel de referencia CAE 2026. </p>
+                <div v-if="caeReferenciaDesactualizada">
+                  <p>{{ notaCaeReferenciaDesactualizada }}</p>
                 </div>
               </template>
               <template #content>
                 <table class="table-cae">
                   <tbody>
                     <tr>
-                      <td class="texto-info">% Arancel referencial total al que se está accediendo con CAE</td>
+                      <td class="texto-info">Monto máximo financiable con CAE</td>
                       <td>
                         <Tag class="info-tag">CAE</Tag>
                       </td>
@@ -1159,19 +1185,16 @@ defineExpose({
                   <CardHeader class="pb-3">
                     <CardTitle class="mobile-card-title text-sm flex items-center gap-2">
                       <i class="pi pi-star-fill text-orange-600"></i>
-                      Arancel referencial CAE
-                      <span v-if="carreraInfo?.anio_arancel_referencia && carreraInfo.anio_arancel_referencia < ANIO_POSTULACION" class="text-xs font-normal">
-                        {{ carreraInfo.anio_arancel_referencia }}*
-                      </span>
+                      {{ tituloArancelReferencialCae }}
                     </CardTitle>
                   </CardHeader>
                   <CardContent class="pt-0 space-y-2">
-                    <p v-if="carreraInfo?.anio_arancel_referencia && carreraInfo.anio_arancel_referencia < ANIO_POSTULACION" class="text-xs text-gray-600 mb-2">
-                      *Los valores mostrados corresponden al arancel de referencia CAE 2025. El Mineduc publicará los nuevos aranceles de referencia durante el mes de enero 2026
+                    <p v-if="caeReferenciaDesactualizada" class="text-xs text-gray-600 mb-2">
+                      {{ notaCaeReferenciaDesactualizada }}
                     </p>
                     <div class="space-y-2">
                       <div class="flex justify-between items-center">
-                        <span class="font-semibold text-orange-600 text-sm">Máximo Financiamiento CAE</span>
+                        <span class="font-semibold text-orange-600 text-sm">Monto máximo financiable con CAE</span>
                         <Tag class="info-tag text-xs">CAE</Tag>
                       </div>
                       <div class="flex justify-between items-center pt-2 border-t">

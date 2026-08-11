@@ -30,7 +30,7 @@ Ver `.env.docker.example`.
 Levanta SPA + sidecar. El sidecar publica `3000:3000` en el host (para Vite) y sigue disponible en la red Docker como `hubspot-api:3000` (nginx del SPA).
 
 ```bash
-cd /opt/simulador-becas
+cd /opt/simulador-becas-docker
 # En .env: HUBSPOT_ACCESS_TOKEN=...
 docker compose up --build -d
 ```
@@ -66,6 +66,50 @@ cd server/hubspot && npm install && npm start
 
 Tras simulación exitosa se dispara `simulacion_exitosa`.
 Tras registro en servidor (HubSpot y/o prospecto en Supabase) se dispara `registro_confirmado_servidor`.
+
+## Cómo ver el payload completo
+
+Hay **dos payloads**:
+
+1. **DTO del simulador** — body a `/api/hubspot-contact` (lo arma el front).
+2. **`request_properties`** — properties ya mapeadas que el sidecar envía a la API HubSpot (lo que Revops debe validar campo a campo).
+
+### Consola del navegador (DevTools → Console)
+
+Tras simular con consentimiento:
+
+| Log | Contenido |
+|-----|-----------|
+| `[useCRM] POST HubSpot` | `dto` = payload 1 completo |
+| `[HubSpot] properties enviadas:` | `request_properties` = payload 2 (mapeado) |
+| `[useCRM] HubSpot OK` / `[HubSpot] Respuesta` | id, created, respuesta HubSpot |
+
+### Supabase (`prospectos`)
+
+```sql
+select id, email, hubspot_contact_id, prospecto_crm, respuesta_crm, created_at
+from public.prospectos
+where email = 'correo@ejemplo.com'
+order by created_at desc
+limit 1;
+```
+
+- `prospecto_crm` → DTO (payload 1)
+- `respuesta_crm.request_properties` → properties enviadas a HubSpot (payload 2)
+- `respuesta_crm.hubspot_contact_id` → id para cruzar en HubSpot
+- `hubspot_contact_id` → misma id a nivel de columna
+
+### HubSpot UI / API
+
+Con el `hubspot_contact_id`, abrir el contacto en HubSpot o consultar la API CRM Contacts.
+
+### Logs del sidecar
+
+```bash
+cd /opt/simulador-becas-docker && docker compose logs -f hubspot-api
+```
+
+Tras cada upsert exitoso aparece `[hubspot-api] request_properties` con el JSON mapeado.
 
 ## Prueba upsert
 

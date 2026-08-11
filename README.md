@@ -53,7 +53,7 @@ npm run test:unit
 Requisitos: Docker Compose v2, red externa `traefik_default`, archivo `.env` (partir de `.env.docker.example`).
 
 ```bash
-cd /opt/simulador-becas
+cd /opt/simulador-becas-docker
 cp .env.docker.example .env   # solo la primera vez
 # Completar al menos: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, HUBSPOT_ACCESS_TOKEN
 
@@ -86,7 +86,7 @@ Para no depender de una terminal SSH con `npm start` (se cae al cerrar sesión),
 
 ```bash
 # Backend HubSpot (queda vivo aunque cierres la sesión)
-cd /opt/simulador-becas
+cd /opt/simulador-becas-docker
 docker compose up -d --build hubspot-api
 
 # Frontend

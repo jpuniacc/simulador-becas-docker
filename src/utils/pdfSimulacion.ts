@@ -2,6 +2,7 @@ import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
 import { UNIACC_LOGO_DATA_URL } from '@/assets/universidadUniaccLogoBase64'
 import { formatCurrency, formatRUT } from '@/utils/formatters'
+import { ANIO_POSTULACION } from '@/utils/config'
 
 type PdfNode = Record<string, unknown> | string
 type PdfContent = PdfNode | PdfNode[]
@@ -30,6 +31,7 @@ export interface SimulacionPdfPayload {
   arancelDespuesBecasInternas?: number | null
   usaBecasEstado?: boolean
   planeaUsarCAE?: boolean
+  anioArancelReferencia?: number | null
   descuentoCae?: number | null
   arancelFinal?: number | null
   descuentoPagoAnticipadoArancel?: number | null
@@ -379,13 +381,32 @@ export function buildSimulacionPdfDefinition(payload: SimulacionPdfPayload): Rec
       ...(payload.planeaUsarCAE
         ? [{
             stack: [
-              { text: 'Arancel referencial CAE', style: 'subsectionTitle', margin: [0, 4, 0, 4] },
+              {
+                text: (() => {
+                  const anio = payload.anioArancelReferencia
+                  if (!anio) return 'Arancel Referencial CAE'
+                  return anio < ANIO_POSTULACION
+                    ? `Arancel Referencial CAE ${anio}*`
+                    : `Arancel Referencial CAE ${anio}`
+                })(),
+                style: 'subsectionTitle',
+                margin: [0, 4, 0, 4]
+              },
+              ...(payload.anioArancelReferencia &&
+              payload.anioArancelReferencia < ANIO_POSTULACION
+                ? [{
+                    text: `*Los valores mostrados corresponden al arancel de referencia CAE ${payload.anioArancelReferencia}.`,
+                    fontSize: 8,
+                    color: MUTED,
+                    margin: [0, 0, 0, 4]
+                  }]
+                : []),
               {
                 table: {
                   widths: ['*', 50, 40, 80],
                   body: [
                     detailRow(
-                      '% Arancel referencial total al que se está accediendo con CAE',
+                      'Monto máximo financiable con CAE',
                       'CAE',
                       '',
                       money(payload.descuentoCae),

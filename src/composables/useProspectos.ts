@@ -160,7 +160,7 @@ export function useProspectos() {
         // JSON del CRM enviado al sistema de CRM
         prospecto_crm: prospectoCrm || null,
 
-        // Respuesta HubSpot
+        // Respuesta HubSpot (incluye properties mapeadas enviadas a la API)
         respuesta_crm: respuestaCRM ? {
           provider: respuestaCRM.provider || 'hubspot',
           URL_Endpoint_crm: respuestaCRM._crmEndpointUrl || null,
@@ -168,7 +168,9 @@ export function useProspectos() {
           descripcion_respuesta: respuestaCRM.des_respuesta || null,
           hubspot_contact_id: respuestaCRM.hubspot_contact_id || respuestaCRM.id || null,
           created: respuestaCRM.created ?? null,
-          correlationId: respuestaCRM.correlationId || respuestaCRM.hubspot_body?.correlationId || null
+          correlationId: respuestaCRM.correlationId || respuestaCRM.hubspot_body?.correlationId || null,
+          request_properties: respuestaCRM.request_properties || null,
+          response_properties: respuestaCRM.properties || null
         } : null,
 
         hubspot_contact_id: respuestaCRM?.hubspot_contact_id || respuestaCRM?.id || null,

@@ -379,6 +379,7 @@ const handleExportPDF = async () => {
       arancelDespuesBecasInternas: arancelDespuesBecasInternas.value,
       usaBecasEstado: !!fd.usaBecasEstado,
       planeaUsarCAE: !!fd.planeaUsarCAE,
+      anioArancelReferencia: carreraInfo.value.anio_arancel_referencia ?? null,
       descuentoCae: descuentoCae.value,
       arancelFinal: arancelFinalReal.value,
       totalDescuentos: descuentoTotalRealConCae.value,

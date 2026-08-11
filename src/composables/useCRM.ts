@@ -53,6 +53,9 @@ export function useCRM() {
       })
 
       console.log('[useCRM] HubSpot OK', response.data)
+      if (response.data?.request_properties) {
+        console.log('[HubSpot] properties enviadas:', response.data.request_properties)
+      }
       logger.crm('Respuesta HubSpot', {
         id: response.data?.id,
         created: response.data?.created
@@ -62,6 +65,7 @@ export function useCRM() {
         ...response.data,
         provider: 'hubspot',
         hubspot_contact_id: response.data?.id || response.data?.hubspot_contact_id || null,
+        request_properties: response.data?.request_properties || null,
         _crmEndpointUrl: response.data?._crmEndpointUrl || HUBSPOT_URL_REAL,
         cod_respuesta: response.data?.cod_respuesta ?? 1,
         des_respuesta: response.data?.des_respuesta || 'OK',

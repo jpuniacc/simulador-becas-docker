@@ -200,7 +200,12 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
 <template>
     <div class="main-container">
         <div class="header-container">
-            <h1>Simulador de Becas UNIACC</h1>
+            <img
+                src="/logo_uniacc_simulador.png"
+                alt="Universidad UNIACC"
+                class="header-logo"
+            />
+            <h1>Simulador de Becas</h1>
         </div>
         <div class="content-container">
             <Stepper value="1" linear class="w-full sm:basis-[40rem] md:basis-[50rem] lg:basis-[72rem]">
@@ -357,9 +362,13 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
     max-width: 72rem;
     background-color: #000000;
     color: #ffffff;
-    padding: 2rem;
+    padding: 1.5rem 2rem 2rem;
     position: relative;
     margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .header-container::after {
@@ -378,11 +387,26 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
             var(--p-primary-500) 100%);
 }
 
+.header-logo {
+    height: 48px;
+    width: auto;
+    max-width: min(240px, 70vw);
+    object-fit: contain;
+    display: block;
+}
+
 .header-container h1 {
     margin: 0;
     font-size: 1.75rem;
     font-weight: 600;
     text-align: center;
+}
+
+@media (min-width: 768px) {
+    .header-logo {
+        height: 56px;
+        max-width: 280px;
+    }
 }
 
 .content-container {

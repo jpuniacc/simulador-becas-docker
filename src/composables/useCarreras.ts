@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/types/supabase'
+import { carreraTieneArancelAnioActual } from '@/utils/carreraArancelAnio'
 
 type CarreraRow = Database['public']['Tables']['carreras_uniacc']['Row']
 
@@ -11,9 +12,9 @@ export function useCarreras() {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Computed para carreras filtradas por vigencia
+  // Solo carreras con arancel del año en curso o el siguiente (sysdate)
   const carrerasVigentes = computed(() => {
-    return carreras.value // en tabla nueva no hay vigencia
+    return carreras.value.filter((carrera) => carreraTieneArancelAnioActual(carrera))
   })
 
   // Función para inicializar carreras
@@ -85,11 +86,9 @@ export function useCarreras() {
     }
   }
 
-  // Computed para carreras con aranceles definidos
+  // Computed para carreras con aranceles definidos (mismo criterio que vigentes)
   const carrerasConArancel = computed(() => {
-    return carrerasVigentes.value.filter(carrera =>
-      carrera.arancel && carrera.arancel > 0
-    )
+    return carrerasVigentes.value
   })
 
   // Computed para rango de aranceles

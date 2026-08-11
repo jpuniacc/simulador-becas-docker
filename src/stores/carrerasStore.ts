@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/types/supabase'
+import { carreraTieneArancelAnioActual } from '@/utils/carreraArancelAnio'
 
 type CarreraRow = Database['public']['Tables']['carreras_uniacc']['Row']
 export type Carrera = CarreraRow
@@ -12,16 +13,14 @@ export const useCarrerasStore = defineStore('carreras', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Computed para carreras filtradas por vigencia
+  // Solo carreras con arancel del año en curso o el siguiente (sysdate)
   const carrerasVigentes = computed(() => {
-    return carreras.value
+    return carreras.value.filter((carrera) => carreraTieneArancelAnioActual(carrera))
   })
 
-  // Computed para carreras con aranceles definidos
+  // Computed para carreras con aranceles definidos (mismo criterio)
   const carrerasConArancel = computed(() => {
-    return carrerasVigentes.value.filter(carrera =>
-      carrera.arancel && carrera.arancel > 0
-    )
+    return carrerasVigentes.value
   })
 
   // Computed para rango de aranceles
