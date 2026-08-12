@@ -76,6 +76,7 @@ const financingTooltipRef = ref<InstanceType<typeof OverlayPanel> | null>(null)
 const financingIconRef = ref<HTMLElement | null>(null)
 const decilTooltipRef = ref<InstanceType<typeof OverlayPanel> | null>(null)
 const decilIconRef = ref<HTMLElement | null>(null)
+let financingHideTimer: ReturnType<typeof setTimeout> | null = null
 
 // Detectar si es un dispositivo móvil
 const isMobile = ref(false)
@@ -185,10 +186,9 @@ const showDecilSelection = computed(() => {
     return piensaUsarFinanciamiento.value
 })
 
-// Aviso: CAE / becas estatales requieren cumplir requisitos Mineduc (incl. PAES)
+// Aviso Mineduc: aparece al marcar CAE y/o Becas del Estado
 const showFinanciamientoPaesWarning = computed(() => {
-    return formData.value.rendioPAES === false
-        && (formData.value.planeaUsarCAE === true || formData.value.usaBecasEstado === true)
+    return formData.value.planeaUsarCAE === true || formData.value.usaBecasEstado === true
 })
 
 // Computed para opciones del dropdown de deciles
@@ -298,25 +298,47 @@ const seleccionarCarreraSugerida = (nombre: string) => {
     }
 }
 
+const cancelHideFinancingTooltip = () => {
+    if (financingHideTimer) {
+        clearTimeout(financingHideTimer)
+        financingHideTimer = null
+    }
+}
+
 const showFinancingTooltip = (event: MouseEvent) => {
     // Ignorar en móvil, solo usar click
     if (isMobile.value) return
+    cancelHideFinancingTooltip()
     if (financingIconRef.value && financingTooltipRef.value) {
-        financingTooltipRef.value.toggle(event, financingIconRef.value)
+        financingTooltipRef.value.show(event, financingIconRef.value)
     }
 }
 
 const hideFinancingTooltip = () => {
     // Ignorar en móvil, solo usar click
     if (isMobile.value) return
+    cancelHideFinancingTooltip()
     if (financingTooltipRef.value) {
         financingTooltipRef.value.hide()
     }
 }
 
+/** Delay para poder mover el mouse al panel y hacer clic en los links */
+const scheduleHideFinancingTooltip = () => {
+    if (isMobile.value) return
+    cancelHideFinancingTooltip()
+    financingHideTimer = setTimeout(() => {
+        if (financingTooltipRef.value) {
+            financingTooltipRef.value.hide()
+        }
+        financingHideTimer = null
+    }, 280)
+}
+
 const toggleFinancingTooltip = (event: MouseEvent | TouchEvent) => {
     event.preventDefault()
     event.stopPropagation()
+    cancelHideFinancingTooltip()
     if (financingIconRef.value && financingTooltipRef.value) {
         const target = (event.target as HTMLElement) || financingIconRef.value
         financingTooltipRef.value.toggle(event as MouseEvent, target)
@@ -683,18 +705,49 @@ onUnmounted(() => {
                             class="pi pi-info-circle financing-icon ml-2"
                             @click.stop="toggleFinancingTooltip"
                             @mouseenter="!isMobile && showFinancingTooltip($event)"
-                            @mouseleave="!isMobile && hideFinancingTooltip()"
+                            @mouseleave="!isMobile && scheduleHideFinancingTooltip()"
                         ></i>
                     </h4>
                     <OverlayPanel ref="financingTooltipRef" class="custom-tooltip-panel">
-                        <div class="custom-tooltip">
+                        <div
+                            class="custom-tooltip"
+                            @mouseenter="cancelHideFinancingTooltip"
+                            @mouseleave="scheduleHideFinancingTooltip"
+                        >
                             <div class="mb-3">
                                 <h4 class="tooltip-title">Becas Ministeriales:</h4>
-                                <p class="tooltip-description">Apoyo económico que entrega el Ministerio de Educación para que puedas financiar parte del costo de tus estudios, cubriendo el total o parte del arancel anual de tu carrera.</p>
+                                <p class="tooltip-description">En general, se solicita que hayas obtenido un puntaje igual o superior a 510 puntos en el promedio de las pruebas obligatorias (pruebas Competencia Lectora y Competencia Matemática) en las PAES del año de admisión a la carrera.</p>
+                            </div>
+                            <div class="mb-3">
+                                <h4 class="tooltip-title">CAE (Crédito con Aval del Estado):</h4>
+                                <p class="tooltip-description">Un puntaje igual o superior a 485 puntos en el promedio de las pruebas obligatorias (Competencia Lectora y Competencia Matemática 1), considerando, para estos efectos, el mejor puntaje obtenido en los instrumentos de  evaluación vigentes para el Proceso de Admisión 2026, que son: 1) Prueba de Acceso a la Educación Superior (PAES) Regular (rendida en diciembre 2025); 2) PAES Invierno 2025 (rendida en junio 2025); 3) PAES Regular 2024 (rendida en diciembre 2024); y 4) PAES Invierno 2024 (rendida en junio 2024).</p>
                             </div>
                             <div>
-                                <h4 class="tooltip-title">CAE (Crédito con Aval del Estado):</h4>
-                                <p class="tooltip-description">Es un crédito universitario financiado por los bancos con una tasa del 2 %, el cual tendrá dos avales: la institución de educación superior y el Estado.</p>
+                                <h4 class="tooltip-title">Revisa el detalle oficial:</h4>
+                                <ul class="tooltip-description list-disc pl-5 space-y-1 mt-1">
+                                    <li>
+                                        <a
+                                            href="https://portal.ingresa.cl/como-postular/requisitos-para-postular/"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="underline font-medium"
+                                            @click.stop
+                                        >
+                                            Crédito con Garantía Estatal (CAE)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="https://portal.beneficiosestudiantiles.cl/becas/becas-de-arancel"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="underline font-medium"
+                                            @click.stop
+                                        >
+                                            Becas de arancel
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </OverlayPanel>
@@ -731,7 +784,7 @@ onUnmounted(() => {
                                         <CheckCircle class="w-6 h-6" />
                                     </div>
                                     <div class="option-text">
-                                        <h5 class="text-gray-900 dark:text-white">Becas del Estado</h5>
+                                        <h5 class="text-gray-900 dark:text-white">Becas Ministeriales</h5>
                                         <p class="text-gray-600 dark:text-slate-300">Becas estatales.</p>
                                     </div>
                                 </div>
@@ -753,14 +806,10 @@ onUnmounted(() => {
                             a 485 puntos en Competencia Lectora y Competencia Matemática 1, según el mejor puntaje de los
                             instrumentos PAES vigentes para el proceso de admisión.
                         </p>
-                        <p class="mb-2 text-sm">
-                            Pueden existir excepciones (por ejemplo NEM ≥ 5,29 en ciertos casos) y exigencias adicionales
-                            de cada institución. Revisa el detalle oficial:
-                        </p>
                         <ul class="text-sm list-disc pl-5 space-y-1">
                             <li>
                                 <a
-                                    href="https://portal.beneficiosestudiantiles.cl/becas-y-creditos/credito-con-garantia-estatal-cae"
+                                    href="https://portal.ingresa.cl/como-postular/requisitos-para-postular/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="underline font-medium"
