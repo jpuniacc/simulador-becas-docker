@@ -72,11 +72,8 @@ const formData = ref<Partial<FormData>>({
 const carreraSeleccionada = ref<Carrera | null>(null)
 const carrerasSugeridas = ['Danza', 'Psicología', 'Ingeniería Comercial']
 const filteredCarreras = ref<Carrera[]>([])
-const financingTooltipRef = ref<InstanceType<typeof OverlayPanel> | null>(null)
-const financingIconRef = ref<HTMLElement | null>(null)
 const decilTooltipRef = ref<InstanceType<typeof OverlayPanel> | null>(null)
 const decilIconRef = ref<HTMLElement | null>(null)
-let financingHideTimer: ReturnType<typeof setTimeout> | null = null
 
 // Detectar si es un dispositivo móvil
 const isMobile = ref(false)
@@ -295,53 +292,6 @@ const seleccionarCarreraSugerida = (nombre: string) => {
         if (carrerasFiltradas.length > 0) {
             selectCarrera(carreraEncontrada)
         }
-    }
-}
-
-const cancelHideFinancingTooltip = () => {
-    if (financingHideTimer) {
-        clearTimeout(financingHideTimer)
-        financingHideTimer = null
-    }
-}
-
-const showFinancingTooltip = (event: MouseEvent) => {
-    // Ignorar en móvil, solo usar click
-    if (isMobile.value) return
-    cancelHideFinancingTooltip()
-    if (financingIconRef.value && financingTooltipRef.value) {
-        financingTooltipRef.value.show(event, financingIconRef.value)
-    }
-}
-
-const hideFinancingTooltip = () => {
-    // Ignorar en móvil, solo usar click
-    if (isMobile.value) return
-    cancelHideFinancingTooltip()
-    if (financingTooltipRef.value) {
-        financingTooltipRef.value.hide()
-    }
-}
-
-/** Delay para poder mover el mouse al panel y hacer clic en los links */
-const scheduleHideFinancingTooltip = () => {
-    if (isMobile.value) return
-    cancelHideFinancingTooltip()
-    financingHideTimer = setTimeout(() => {
-        if (financingTooltipRef.value) {
-            financingTooltipRef.value.hide()
-        }
-        financingHideTimer = null
-    }, 280)
-}
-
-const toggleFinancingTooltip = (event: MouseEvent | TouchEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-    cancelHideFinancingTooltip()
-    if (financingIconRef.value && financingTooltipRef.value) {
-        const target = (event.target as HTMLElement) || financingIconRef.value
-        financingTooltipRef.value.toggle(event as MouseEvent, target)
     }
 }
 
@@ -700,57 +650,7 @@ onUnmounted(() => {
                 <div v-if="piensaUsarFinanciamiento" class="form-field financing-options-field">
                     <h4 class="text-md text-gray-500 mt-2 mb-2 block">
                         ¿Qué tipo de financiamiento planeas utilizar?
-                        <i
-                            ref="financingIconRef"
-                            class="pi pi-info-circle financing-icon ml-2"
-                            @click.stop="toggleFinancingTooltip"
-                            @mouseenter="!isMobile && showFinancingTooltip($event)"
-                            @mouseleave="!isMobile && scheduleHideFinancingTooltip()"
-                        ></i>
                     </h4>
-                    <OverlayPanel ref="financingTooltipRef" class="custom-tooltip-panel">
-                        <div
-                            class="custom-tooltip"
-                            @mouseenter="cancelHideFinancingTooltip"
-                            @mouseleave="scheduleHideFinancingTooltip"
-                        >
-                            <div class="mb-3">
-                                <h4 class="tooltip-title">Becas Ministeriales:</h4>
-                                <p class="tooltip-description">En general, se solicita que hayas obtenido un puntaje igual o superior a 510 puntos en el promedio de las pruebas obligatorias (pruebas Competencia Lectora y Competencia Matemática) en las PAES del año de admisión a la carrera.</p>
-                            </div>
-                            <div class="mb-3">
-                                <h4 class="tooltip-title">CAE (Crédito con Aval del Estado):</h4>
-                                <p class="tooltip-description">Un puntaje igual o superior a 485 puntos en el promedio de las pruebas obligatorias (Competencia Lectora y Competencia Matemática 1), considerando, para estos efectos, el mejor puntaje obtenido en los instrumentos de  evaluación vigentes para el Proceso de Admisión 2026, que son: 1) Prueba de Acceso a la Educación Superior (PAES) Regular (rendida en diciembre 2025); 2) PAES Invierno 2025 (rendida en junio 2025); 3) PAES Regular 2024 (rendida en diciembre 2024); y 4) PAES Invierno 2024 (rendida en junio 2024).</p>
-                            </div>
-                            <div>
-                                <h4 class="tooltip-title">Revisa el detalle oficial:</h4>
-                                <ul class="tooltip-description list-disc pl-5 space-y-1 mt-1">
-                                    <li>
-                                        <a
-                                            href="https://portal.ingresa.cl/como-postular/requisitos-para-postular/"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="underline font-medium"
-                                            @click.stop
-                                        >
-                                            Crédito con Garantía Estatal (CAE)
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="https://portal.beneficiosestudiantiles.cl/becas/becas-de-arancel"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="underline font-medium"
-                                            @click.stop
-                                        >
-                                            Becas de arancel
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </OverlayPanel>
                     <div v-if="(submitted || touched.financiamiento) && piensaUsarFinanciamiento && !formData.planeaUsarCAE && !formData.usaBecasEstado" class="mb-2">
                         <Message severity="error" variant="simple" size="small">
                             Debes seleccionar al menos una opción de financiamiento
@@ -797,37 +697,43 @@ onUnmounted(() => {
                         :closable="false"
                         class="mt-3 financiamiento-paes-warning"
                     >
-                        <p class="font-semibold mb-2">
-                            Para postular al CAE y/u obtener becas estatales debes cumplir los requisitos del Mineduc;
-                            uno de ellos es haber rendido la PAES.
-                        </p>
-                        <p class="mb-2 text-sm">
-                            En universidad (ingreso a primer año), el requisito académico habitual es un promedio igual o superior
-                            a 485 puntos en Competencia Lectora y Competencia Matemática 1, según el mejor puntaje de los
-                            instrumentos PAES vigentes para el proceso de admisión.
-                        </p>
-                        <ul class="text-sm list-disc pl-5 space-y-1">
-                            <li>
-                                <a
-                                    href="https://portal.ingresa.cl/como-postular/requisitos-para-postular/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="underline font-medium"
-                                >
-                                    Crédito con Garantía Estatal (CAE)
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://portal.beneficiosestudiantiles.cl/becas/becas-de-arancel"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="underline font-medium"
-                                >
-                                    Becas de arancel
-                                </a>
-                            </li>
-                        </ul>
+                        <div class="mb-3">
+                            <p class="font-semibold mb-1">Becas Ministeriales:</p>
+                            <p class="text-sm">
+                                En general, se solicita que hayas obtenido un puntaje igual o superior a 510 puntos en el promedio de las pruebas obligatorias (pruebas Competencia Lectora y Competencia Matemática) en las PAES del año de admisión a la carrera.
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <p class="font-semibold mb-1">CAE (Crédito con Aval del Estado):</p>
+                            <p class="text-sm">
+                                Un puntaje igual o superior a 485 puntos en el promedio de las pruebas obligatorias (Competencia Lectora y Competencia Matemática 1), considerando, para estos efectos, el mejor puntaje obtenido en los instrumentos de evaluación vigentes para el Proceso de Admisión 2026, que son: 1) Prueba de Acceso a la Educación Superior (PAES) Regular (rendida en diciembre 2025); 2) PAES Invierno 2025 (rendida en junio 2025); 3) PAES Regular 2024 (rendida en diciembre 2024); y 4) PAES Invierno 2024 (rendida en junio 2024).
+                            </p>
+                        </div>
+                        <div>
+                            <p class="font-semibold mb-1">Revisa el detalle oficial:</p>
+                            <ul class="text-sm list-disc pl-5 space-y-1">
+                                <li>
+                                    <a
+                                        href="https://portal.ingresa.cl/como-postular/requisitos-para-postular/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline font-medium"
+                                    >
+                                        Crédito con Garantía Estatal (CAE)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://portal.beneficiosestudiantiles.cl/becas/becas-de-arancel"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="underline font-medium"
+                                    >
+                                        Becas de arancel
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </Message>
                 </div>
 
@@ -902,20 +808,6 @@ onUnmounted(() => {
 }
 
 .decil-icon:hover {
-    @apply text-gray-700;
-}
-
-.financing-icon {
-    @apply text-gray-500 cursor-help;
-    font-size: 0.875rem;
-    width: 0.875rem;
-    height: 0.875rem;
-    display: inline-block;
-    line-height: 1;
-    transition: color 0.2s;
-}
-
-.financing-icon:hover {
     @apply text-gray-700;
 }
 
