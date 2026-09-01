@@ -104,6 +104,9 @@ async function updateContactByEmail(email, properties) {
 app.post('/hubspot/contact', async (req, res) => {
   try {
     const dto = req.body || {}
+    const hubspotContext = dto.hubspot_context && typeof dto.hubspot_context === 'object'
+      ? dto.hubspot_context
+      : null
     const properties = toHubSpotProperties(dto)
     const email = properties.email
 
@@ -158,6 +161,7 @@ app.post('/hubspot/contact', async (req, res) => {
       email,
       created,
       id,
+      hubspot_context: hubspotContext,
       request_properties: properties,
     })
 

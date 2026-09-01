@@ -67,10 +67,20 @@ export interface FormData {
   campaign_id?: string
   ad_id?: string
   gclid?: string
+  gcl_aw?: string
   fbclid?: string
   msclkid?: string
   ttclid?: string
+  twclid?: string
   li_fat_id?: string
+  gad_source?: string
+  gbraid?: string
+  wbraid?: string
+  referrer?: string
+  landing_page?: string
+  organic_source?: string
+  organic_medium?: string
+  traffic_type?: string
   first_touch_url?: string
   first_touch_timestamp?: string
   last_touch_url?: string

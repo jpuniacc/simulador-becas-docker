@@ -67,6 +67,17 @@ cd server/hubspot && npm install && npm start
 Tras simulación exitosa se dispara `simulacion_exitosa`.
 Tras registro en servidor (HubSpot y/o prospecto en Supabase) se dispara `registro_confirmado_servidor`.
 
+## Atribución HubSpot (fase 1)
+
+- **Tracking embed** en `index.html`: `js.hs-scripts.com/51464408.js` (cookie `hubspotutk`).
+- **Captura ampliada** en `useCampaignTracking`: referrer, landing, `_gcl_aw`, `traffic_type`, orgánico.
+- **Al enviar contacto**: DTO incluye `hubspot_context` (hutk + pageUri); sidecar mapea a properties HS; tras OK se llama `_hsq.identify`.
+- **Supabase**: ejecutar `docs/agregar_campos_atribucion_prospectos.sql` antes del deploy.
+
+Properties HS nuevas (crear en portal si no existen): `referrer_simulador`, `traffic_type_simulador`, `organic_source_simulador`, `organic_medium_simulador`, `landing_page_simulador`, `hutk_simulador`, `gcl_aw_simulador`.
+
+**Cross-domain** (manual en HubSpot): Settings → Tracking → incluir `simulador.uniacc.cl` y `uniacc.cl`.
+
 ## Cómo ver el payload completo
 
 Hay **dos payloads**:

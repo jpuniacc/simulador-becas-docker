@@ -1,5 +1,6 @@
 import type { FormData } from '@/types/simulador'
 import type { Carrera } from '@/stores/carrerasStore'
+import { buildHubSpotTrackingContext } from '@/utils/hubspotTracking'
 
 /**
  * DTO enviado al sidecar HubSpot (mapea a properties en server/hubspot/mapper.js).
@@ -89,13 +90,25 @@ export function buildHubSpotContactDto(
     campaign_id: form.campaign_id || undefined,
     ad_id: form.ad_id || undefined,
     gclid: form.gclid || undefined,
+    gcl_aw: form.gcl_aw || undefined,
     fbclid: form.fbclid || undefined,
+    msclkid: form.msclkid || undefined,
     ttclid: form.ttclid || undefined,
+    twclid: form.twclid || undefined,
     li_fat_id: form.li_fat_id || undefined,
+    gad_source: form.gad_source || undefined,
+    gbraid: form.gbraid || undefined,
+    wbraid: form.wbraid || undefined,
+    referrer: form.referrer || undefined,
+    landing_page: form.landing_page || undefined,
+    organic_source: form.organic_source || undefined,
+    organic_medium: form.organic_medium || undefined,
+    traffic_type: form.traffic_type || undefined,
     first_touch_url: form.first_touch_url || undefined,
     first_touch_timestamp: form.first_touch_timestamp || undefined,
     last_touch_url: form.last_touch_url || undefined,
     last_touch_timestamp: form.last_touch_timestamp || undefined,
+    hubspot_context: buildHubSpotTrackingContext(),
     User_Agent: extras?.userAgent || undefined,
   }
 

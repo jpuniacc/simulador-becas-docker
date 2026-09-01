@@ -1,7 +1,13 @@
 import { ref, computed } from 'vue'
+import {
+  type AttributionSnapshot,
+  enrichAttributionSnapshot,
+  parseUrlAttribution,
+  urlHasCampaignParams,
+} from '@/utils/attribution'
 
 /**
- * Parámetros UTM estándar
+ * Parámetros UTM estándar (compat exports)
  */
 export interface UTMParameters {
   utm_source?: string
@@ -11,85 +17,115 @@ export interface UTMParameters {
   utm_content?: string
 }
 
-/**
- * Parámetros de campaña personalizados adicionales
- */
 export interface CustomCampaignParameters {
   campaign_id?: string
   ad_id?: string
-  gclid?: string // Google Click ID
-  fbclid?: string // Facebook Click ID
-  msclkid?: string // Microsoft Click ID
-  ttclid?: string // TikTok Click ID
-  li_fat_id?: string // LinkedIn Click ID
+  gclid?: string
+  gcl_aw?: string
+  fbclid?: string
+  msclkid?: string
+  ttclid?: string
+  twclid?: string
+  li_fat_id?: string
+  gad_source?: string
+  gbraid?: string
+  wbraid?: string
 }
 
-/**
- * Datos completos de campaña
- */
-export interface CampaignData extends UTMParameters, CustomCampaignParameters {
-  first_touch_url?: string
-  first_touch_timestamp?: string
-  last_touch_url?: string
-  last_touch_timestamp?: string
-}
+/** Datos completos de campaña y atribución */
+export type CampaignData = AttributionSnapshot
 
-/**
- * Datos almacenados en localStorage
- */
 interface StoredCampaignData extends CampaignData {
   expiresAt?: string
 }
 
-/**
- * Clave para localStorage
- */
 const STORAGE_KEY = 'simulador-campaign-data'
+const SESSION_LANDING_KEY = 'simulador-landing-page'
 const DEFAULT_EXPIRATION_DAYS = 30
 
-/**
- * Composable para tracking de campañas y parámetros UTM
- */
+function captureSessionAttribution(): Pick<
+  CampaignData,
+  'referrer' | 'landing_page'
+> {
+  if (typeof window === 'undefined') return {}
+
+  let landing_page = sessionStorage.getItem(SESSION_LANDING_KEY) || undefined
+  if (!landing_page) {
+    landing_page = window.location.href
+    try {
+      sessionStorage.setItem(SESSION_LANDING_KEY, landing_page)
+    } catch {
+      // ignore quota / private mode
+    }
+  }
+
+  const referrer = document.referrer?.trim() || undefined
+  return { referrer, landing_page }
+}
+
+function mergeAttribution(
+  stored: StoredCampaignData | null,
+  currentUrl: string,
+  expirationDays: number
+): CampaignData {
+  const now = new Date().toISOString()
+  const urlParams = parseUrlAttribution(currentUrl)
+  const session = captureSessionAttribution()
+  const hasUrlParams = urlHasCampaignParams(currentUrl)
+
+  const base: AttributionSnapshot = {
+    ...(stored ?? {}),
+    referrer: stored?.referrer || session.referrer,
+    landing_page: stored?.landing_page || session.landing_page,
+    first_touch_url: stored?.first_touch_url || session.landing_page || currentUrl,
+    first_touch_timestamp: stored?.first_touch_timestamp || now,
+    last_touch_url: currentUrl,
+    last_touch_timestamp: now,
+    ...urlParams,
+  }
+
+  if (hasUrlParams) {
+    base.last_touch_url = currentUrl
+    base.last_touch_timestamp = now
+  }
+
+  return enrichAttributionSnapshot(base)
+}
+
 export function useCampaignTracking() {
   const campaignData = ref<CampaignData>({})
 
-  /**
-   * Extrae parámetros UTM de la URL
-   */
   const extractUTMFromURL = (url: string = window.location.href): UTMParameters => {
-    const urlObj = new URL(url)
-    const params = new URLSearchParams(urlObj.search)
-
+    const p = parseUrlAttribution(url)
     return {
-      utm_source: params.get('utm_source') || undefined,
-      utm_medium: params.get('utm_medium') || undefined,
-      utm_campaign: params.get('utm_campaign') || undefined,
-      utm_term: params.get('utm_term') || undefined,
-      utm_content: params.get('utm_content') || undefined
+      utm_source: p.utm_source,
+      utm_medium: p.utm_medium,
+      utm_campaign: p.utm_campaign,
+      utm_term: p.utm_term,
+      utm_content: p.utm_content,
     }
   }
 
-  /**
-   * Extrae parámetros personalizados de la URL
-   */
-  const extractCustomParamsFromURL = (url: string = window.location.href): CustomCampaignParameters => {
-    const urlObj = new URL(url)
-    const params = new URLSearchParams(urlObj.search)
-
+  const extractCustomParamsFromURL = (
+    url: string = window.location.href
+  ): CustomCampaignParameters => {
+    const p = parseUrlAttribution(url)
     return {
-      campaign_id: params.get('campaign_id') || params.get('campaignId') || undefined,
-      ad_id: params.get('ad_id') || params.get('adId') || undefined,
-      gclid: params.get('gclid') || undefined,
-      fbclid: params.get('fbclid') || undefined,
-      msclkid: params.get('msclkid') || undefined,
-      ttclid: params.get('ttclid') || undefined,
-      li_fat_id: params.get('li_fat_id') || undefined
+      campaign_id: p.campaign_id,
+      ad_id: p.ad_id,
+      gclid: p.gclid,
+      gcl_aw: p.gcl_aw,
+      fbclid: p.fbclid,
+      msclkid: p.msclkid,
+      ttclid: p.ttclid,
+      twclid: p.twclid,
+      li_fat_id: p.li_fat_id,
+      gad_source: p.gad_source,
+      gbraid: p.gbraid,
+      wbraid: p.wbraid,
     }
   }
 
-  /**
-   * Carga datos de campaña desde localStorage
-   */
   const loadFromLocalStorage = (): StoredCampaignData | null => {
     if (typeof window === 'undefined') return null
 
@@ -99,7 +135,6 @@ export function useCampaignTracking() {
 
       const data: StoredCampaignData = JSON.parse(stored)
 
-      // Verificar expiración
       if (data.expiresAt) {
         const expirationDate = new Date(data.expiresAt)
         if (expirationDate < new Date()) {
@@ -115,10 +150,10 @@ export function useCampaignTracking() {
     }
   }
 
-  /**
-   * Guarda datos de campaña en localStorage
-   */
-  const saveToLocalStorage = (data: CampaignData, expirationDays: number = DEFAULT_EXPIRATION_DAYS): void => {
+  const saveToLocalStorage = (
+    data: CampaignData,
+    expirationDays: number = DEFAULT_EXPIRATION_DAYS
+  ): void => {
     if (typeof window === 'undefined') return
 
     try {
@@ -127,7 +162,7 @@ export function useCampaignTracking() {
 
       const storedData: StoredCampaignData = {
         ...data,
-        expiresAt: expirationDate.toISOString()
+        expiresAt: expirationDate.toISOString(),
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData))
@@ -136,169 +171,70 @@ export function useCampaignTracking() {
     }
   }
 
-  /**
-   * Captura parámetros de campaña de la URL actual
-   */
   const captureFromCurrentURL = (): CampaignData => {
-    const currentURL = window.location.href
-    const utmParams = extractUTMFromURL(currentURL)
-    const customParams = extractCustomParamsFromURL(currentURL)
-
-    const hasCampaignParams = Object.keys(utmParams).some(key => utmParams[key as keyof UTMParameters]) ||
-                              Object.keys(customParams).some(key => customParams[key as keyof CustomCampaignParameters])
-
-    if (!hasCampaignParams) {
-      return {}
-    }
-
-    return {
-      ...utmParams,
-      ...customParams,
-      last_touch_url: currentURL,
-      last_touch_timestamp: new Date().toISOString()
-    }
+    if (typeof window === 'undefined') return {}
+    const stored = loadFromLocalStorage()
+    return mergeAttribution(stored, window.location.href, DEFAULT_EXPIRATION_DAYS)
   }
 
-  /**
-   * Inicializa y captura parámetros de campaña
-   * Si hay parámetros nuevos en la URL, los captura y actualiza
-   * Si no hay parámetros nuevos, carga los almacenados
-   */
   const initialize = (expirationDays: number = DEFAULT_EXPIRATION_DAYS): CampaignData => {
-    const currentParams = captureFromCurrentURL()
-    const storedData = loadFromLocalStorage()
+    if (typeof window === 'undefined') return {}
 
-    // Logs de debugging
-    if (import.meta.env.DEV) {
-      console.log('🔍 Campaign Tracking - Initializing...')
-      console.log('🔍 Campaign Tracking - Current URL:', window.location.href)
-      console.log('🔍 Campaign Tracking - Current params from URL:', currentParams)
-      console.log('🔍 Campaign Tracking - Stored data from localStorage:', storedData)
-    }
+    const stored = loadFromLocalStorage()
+    const merged = mergeAttribution(stored, window.location.href, expirationDays)
 
-    // Si hay parámetros nuevos en la URL, usar esos (nuevo contacto)
-    if (Object.keys(currentParams).length > 0) {
-      const mergedData: CampaignData = {
-        // Mantener first_touch si ya existe, sino usar current
-        first_touch_url: storedData?.first_touch_url || currentParams.last_touch_url,
-        first_touch_timestamp: storedData?.first_touch_timestamp || currentParams.last_touch_timestamp,
-        // Actualizar last_touch siempre
-        last_touch_url: currentParams.last_touch_url,
-        last_touch_timestamp: currentParams.last_touch_timestamp,
-        // Priorizar parámetros nuevos sobre almacenados
-        ...storedData,
-        ...currentParams
-      }
-
-      campaignData.value = mergedData
-      saveToLocalStorage(mergedData, expirationDays)
-
-      if (import.meta.env.DEV) {
-        console.log('✅ Campaign Tracking - New params captured, merged data:', mergedData)
-        console.log('✅ Campaign Tracking - Saved to localStorage')
-      }
-
-      return mergedData
-    }
-
-    // Si no hay parámetros nuevos, usar los almacenados
-    if (storedData) {
-      // Limpiar expiresAt antes de asignar (no lo necesitamos en el objeto final)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { expiresAt, ...data } = storedData
-      campaignData.value = data
-
-      if (import.meta.env.DEV) {
-        console.log('📦 Campaign Tracking - Using stored data from localStorage:', data)
-        console.log('📦 Campaign Tracking - Data persisted from previous visit')
-      }
-
-      return data
-    }
+    campaignData.value = merged
+    saveToLocalStorage(merged, expirationDays)
 
     if (import.meta.env.DEV) {
-      console.log('⚠️ Campaign Tracking - No campaign data found (no params in URL, no stored data)')
+      console.log('🔍 Campaign Tracking - Initialized:', merged)
     }
 
-    return {}
+    return merged
   }
 
-  /**
-   * Obtiene los datos de campaña actuales
-   * Si no hay datos en memoria, intenta cargar desde localStorage
-   */
   const getCampaignData = (): CampaignData => {
-    // Si hay datos en memoria, retornarlos
     if (Object.keys(campaignData.value).length > 0) {
       return { ...campaignData.value }
     }
-    
-    // Si no hay datos en memoria, intentar cargar desde localStorage
+
     const storedData = loadFromLocalStorage()
     if (storedData) {
-      // Limpiar expiresAt antes de retornar
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { expiresAt, ...data } = storedData
-      // Actualizar también el estado en memoria para futuras consultas
       campaignData.value = data
       return data
     }
-    
+
     return {}
   }
 
-  /**
-   * Limpia los datos de campaña
-   */
   const clearCampaignData = (): void => {
     campaignData.value = {}
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY)
+      sessionStorage.removeItem(SESSION_LANDING_KEY)
     }
   }
 
-  /**
-   * Obtiene solo los parámetros UTM
-   */
-  const getUTMParameters = computed((): UTMParameters => {
-    return {
-      utm_source: campaignData.value.utm_source,
-      utm_medium: campaignData.value.utm_medium,
-      utm_campaign: campaignData.value.utm_campaign,
-      utm_term: campaignData.value.utm_term,
-      utm_content: campaignData.value.utm_content
-    }
-  })
+  const getUTMParameters = computed((): UTMParameters => extractUTMFromURL())
 
-  /**
-   * Verifica si hay datos de campaña
-   */
   const hasCampaignData = computed((): boolean => {
     return Object.keys(campaignData.value).length > 0
   })
 
-  /**
-   * Push a Google Tag Manager dataLayer (si está disponible)
-   */
   const pushToDataLayer = (eventName: string, additionalData?: Record<string, unknown>): void => {
-    if (typeof window === 'undefined') {
-      return
-    }
+    if (typeof window === 'undefined') return
 
     const win = window as Window & { dataLayer?: unknown[] }
-    if (!win.dataLayer) {
-      return
-    }
+    if (!win.dataLayer) return
 
     win.dataLayer.push({
       event: eventName,
       campaign_data: campaignData.value,
-      ...additionalData
+      ...additionalData,
     } as Record<string, unknown>)
   }
-
-  // Nota: La inicialización se hace manualmente desde App.vue
-  // No usar onMounted aquí para evitar múltiples inicializaciones
 
   return {
     campaignData,
@@ -310,7 +246,8 @@ export function useCampaignTracking() {
     clearCampaignData,
     pushToDataLayer,
     loadFromLocalStorage,
-    saveToLocalStorage
+    saveToLocalStorage,
+    extractUTMFromURL,
+    extractCustomParamsFromURL,
   }
 }
-

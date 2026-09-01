@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { updateSEO } from '../composables/useSEO'
 import { useCampaignTracking } from '../composables/useCampaignTracking'
+import { trackHubSpotPageView } from '../utils/hubspotTracking'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -194,6 +195,8 @@ router.afterEach((to, from) => {
       campaign_data: campaignData
     })
   }
+
+  trackHubSpotPageView(to.fullPath)
 
   // Log para debugging (remover en producción si es necesario)
   if (import.meta.env.DEV) {

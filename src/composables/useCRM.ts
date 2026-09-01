@@ -4,6 +4,7 @@ import type { FormData } from '@/types/simulador'
 import type { Carrera } from '@/stores/carrerasStore'
 import { logger } from '@/utils/logger'
 import { buildHubSpotContactDto } from '@/utils/hubspotContact'
+import { identifyHubSpotContact } from '@/utils/hubspotTracking'
 
 const HUBSPOT_ENDPOINT = '/api/hubspot-contact'
 const HUBSPOT_URL_REAL = 'https://api.hubapi.com/crm/v3/objects/contacts'
@@ -60,6 +61,8 @@ export function useCRM() {
         id: response.data?.id,
         created: response.data?.created
       })
+
+      identifyHubSpotContact(String(dto.email ?? ''))
 
       return {
         ...response.data,

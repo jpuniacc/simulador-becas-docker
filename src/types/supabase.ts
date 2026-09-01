@@ -911,11 +911,15 @@ export type Database = {
           fbclid: string | null
           first_touch_timestamp: string | null
           first_touch_url: string | null
+          gad_source: string | null
+          gbraid: string | null
+          gcl_aw: string | null
           gclid: string | null
           genero: string | null
           grado_academico: string | null
           hubspot_contact_id: string | null
           id: string
+          landing_page: string | null
           last_touch_timestamp: string | null
           last_touch_url: string | null
           li_fat_id: string | null
@@ -929,12 +933,15 @@ export type Database = {
           nombre: string
           numero_cuotas: number | null
           objetivo: Json | null
+          organic_medium: string | null
+          organic_source: string | null
           paes: boolean | null
           pasaporte: string | null
           periodo_id: number | null
           prospecto_crm: Json | null
           rango_ingreso: string | null
           ranking: number | null
+          referrer: string | null
           region: string | null
           respuesta_crm: Json | null
           rut: string | null
@@ -942,7 +949,9 @@ export type Database = {
           semestre_ingreso: number | null
           telefono: string | null
           total_final: number | null
+          traffic_type: string | null
           ttclid: string | null
+          twclid: string | null
           updated_at: string | null
           url_origen: string | null
           utm_campaign: string | null
@@ -951,6 +960,7 @@ export type Database = {
           utm_source: string | null
           utm_term: string | null
           valor_mensual: number | null
+          wbraid: string | null
         }
         Insert: {
           ad_id?: string | null
@@ -979,11 +989,15 @@ export type Database = {
           fbclid?: string | null
           first_touch_timestamp?: string | null
           first_touch_url?: string | null
+          gad_source?: string | null
+          gbraid?: string | null
+          gcl_aw?: string | null
           gclid?: string | null
           genero?: string | null
           grado_academico?: string | null
           hubspot_contact_id?: string | null
           id?: string
+          landing_page?: string | null
           last_touch_timestamp?: string | null
           last_touch_url?: string | null
           li_fat_id?: string | null
@@ -997,12 +1011,15 @@ export type Database = {
           nombre: string
           numero_cuotas?: number | null
           objetivo?: Json | null
+          organic_medium?: string | null
+          organic_source?: string | null
           paes?: boolean | null
           pasaporte?: string | null
           periodo_id?: number | null
           prospecto_crm?: Json | null
           rango_ingreso?: string | null
           ranking?: number | null
+          referrer?: string | null
           region?: string | null
           respuesta_crm?: Json | null
           rut?: string | null
@@ -1010,7 +1027,9 @@ export type Database = {
           semestre_ingreso?: number | null
           telefono?: string | null
           total_final?: number | null
+          traffic_type?: string | null
           ttclid?: string | null
+          twclid?: string | null
           updated_at?: string | null
           url_origen?: string | null
           utm_campaign?: string | null
@@ -1019,6 +1038,7 @@ export type Database = {
           utm_source?: string | null
           utm_term?: string | null
           valor_mensual?: number | null
+          wbraid?: string | null
         }
         Update: {
           ad_id?: string | null
@@ -1047,11 +1067,15 @@ export type Database = {
           fbclid?: string | null
           first_touch_timestamp?: string | null
           first_touch_url?: string | null
+          gad_source?: string | null
+          gbraid?: string | null
+          gcl_aw?: string | null
           gclid?: string | null
           genero?: string | null
           grado_academico?: string | null
           hubspot_contact_id?: string | null
           id?: string
+          landing_page?: string | null
           last_touch_timestamp?: string | null
           last_touch_url?: string | null
           li_fat_id?: string | null
@@ -1065,12 +1089,15 @@ export type Database = {
           nombre?: string
           numero_cuotas?: number | null
           objetivo?: Json | null
+          organic_medium?: string | null
+          organic_source?: string | null
           paes?: boolean | null
           pasaporte?: string | null
           periodo_id?: number | null
           prospecto_crm?: Json | null
           rango_ingreso?: string | null
           ranking?: number | null
+          referrer?: string | null
           region?: string | null
           respuesta_crm?: Json | null
           rut?: string | null
@@ -1078,7 +1105,9 @@ export type Database = {
           semestre_ingreso?: number | null
           telefono?: string | null
           total_final?: number | null
+          traffic_type?: string | null
           ttclid?: string | null
+          twclid?: string | null
           updated_at?: string | null
           url_origen?: string | null
           utm_campaign?: string | null
@@ -1087,6 +1116,7 @@ export type Database = {
           utm_source?: string | null
           utm_term?: string | null
           valor_mensual?: number | null
+          wbraid?: string | null
         }
         Relationships: [
           {

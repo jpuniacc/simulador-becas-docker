@@ -105,10 +105,28 @@ export function toHubSpotProperties(dto = {}) {
     utm_content_simulador: asString(dto.utm_content_simulador ?? dto.utm_content),
     campaign_id_simulador: asString(dto.campaign_id_simulador ?? dto.campaign_id),
     ad_id_simulador: asString(dto.ad_id_simulador ?? dto.ad_id),
-    hs_google_click_id: asString(dto.hs_google_click_id ?? dto.gclid),
+    hs_google_click_id: asString(
+      dto.hs_google_click_id ?? dto.gclid ?? dto.gcl_aw
+    ),
     hs_facebook_click_id: asString(dto.hs_facebook_click_id ?? dto.fbclid),
     hs_tiktok_click_id: asString(dto.hs_tiktok_click_id ?? dto.ttclid),
     hs_linkedin_click_id: asString(dto.hs_linkedin_click_id ?? dto.li_fat_id),
+    referrer_simulador: asString(dto.referrer_simulador ?? dto.referrer),
+    traffic_type_simulador: asString(dto.traffic_type_simulador ?? dto.traffic_type),
+    organic_source_simulador: asString(
+      dto.organic_source_simulador ?? dto.organic_source
+    ),
+    organic_medium_simulador: asString(
+      dto.organic_medium_simulador ?? dto.organic_medium
+    ),
+    landing_page_simulador: asString(dto.landing_page_simulador ?? dto.landing_page),
+    hutk_simulador: asString(
+      dto.hutk_simulador
+        ?? (typeof dto.hubspot_context === 'object' && dto.hubspot_context !== null
+          ? dto.hubspot_context.hutk
+          : undefined)
+    ),
+    gcl_aw_simulador: asString(dto.gcl_aw_simulador ?? dto.gcl_aw),
   }
 
   // Quitar undefined
