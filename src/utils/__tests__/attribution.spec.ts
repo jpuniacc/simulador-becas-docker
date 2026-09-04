@@ -64,6 +64,30 @@ describe('deriveTrafficType', () => {
   it('email por utm_medium', () => {
     expect(deriveTrafficType({ utm_medium: 'email', utm_source: 'newsletter' })).toBe('email')
   })
+
+  it.each([
+    ['google', 'cpc'],
+    ['google', 'pmax'],
+    ['google', 'demand_gen'],
+    ['facebook', 'paid_social'],
+    ['instagram', 'paid_social'],
+    ['tiktok', 'paid_social'],
+    ['youtube', 'paid_video'],
+  ] as const)('paid por taxonomía Marketing %s/%s', (utm_source, utm_medium) => {
+    expect(deriveTrafficType({ utm_source, utm_medium })).toBe('paid')
+  })
+
+  it.each([
+    ['instagram', 'organic_social'],
+    ['facebook', 'organic_social'],
+    ['youtube', 'organic_video'],
+  ] as const)('social por taxonomía Marketing %s/%s', (utm_source, utm_medium) => {
+    expect(deriveTrafficType({ utm_source, utm_medium })).toBe('social')
+  })
+
+  it('organic por google/organic', () => {
+    expect(deriveTrafficType({ utm_source: 'google', utm_medium: 'organic' })).toBe('organic')
+  })
 })
 
 describe('enrichAttributionSnapshot', () => {
@@ -74,6 +98,32 @@ describe('enrichAttributionSnapshot', () => {
     })
     expect(result.gclid).toBe('GCL.from_aw')
     expect(result.traffic_type).toBe('paid')
+  })
+
+  it('persiste organic_* desde UTMs sociales orgánicos', () => {
+    const result = enrichAttributionSnapshot({
+      utm_source: 'instagram',
+      utm_medium: 'organic_social',
+    })
+    expect(result.traffic_type).toBe('social')
+    expect(result.organic_source).toBe('instagram')
+    expect(result.organic_medium).toBe('organic_social')
+  })
+})
+
+describe('deriveOrganicFromReferrer social taxonomy', () => {
+  it('instagram → organic_social', () => {
+    expect(deriveOrganicFromReferrer('https://www.instagram.com/p/abc')).toEqual({
+      organic_source: 'instagram',
+      organic_medium: 'organic_social',
+    })
+  })
+
+  it('youtube → organic_video', () => {
+    expect(deriveOrganicFromReferrer('https://www.youtube.com/watch?v=1')).toEqual({
+      organic_source: 'youtube',
+      organic_medium: 'organic_video',
+    })
   })
 })
 

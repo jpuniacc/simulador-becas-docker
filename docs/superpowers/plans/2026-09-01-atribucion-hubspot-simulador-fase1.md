@@ -23,6 +23,10 @@
 2. **HubSpot portal:** crear custom properties si faltan (ver hubspot-integracion.md)
 3. **HubSpot:** activar cross-domain `uniacc.cl` ↔ `simulador.uniacc.cl`
 
+## URLs de prueba (dev)
+
+Ver **`docs/urls-prueba-atribucion-dev.md`** — enlaces listos con base `https://simulador-dev.uniacc.cl/simulador`.
+
 ## QA checklist
 
 - [ ] Cookie `hubspotutk` presente tras cargar simulador

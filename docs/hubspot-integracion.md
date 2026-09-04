@@ -74,7 +74,7 @@ Tras registro en servidor (HubSpot y/o prospecto en Supabase) se dispara `regist
 - **Al enviar contacto**: DTO incluye `hubspot_context` (hutk + pageUri); sidecar mapea a properties HS; tras OK se llama `_hsq.identify`.
 - **Supabase**: ejecutar `docs/agregar_campos_atribucion_prospectos.sql` antes del deploy.
 
-Properties HS nuevas (crear en portal si no existen): `referrer_simulador`, `traffic_type_simulador`, `organic_source_simulador`, `organic_medium_simulador`, `landing_page_simulador`, `hutk_simulador`, `gcl_aw_simulador`.
+Properties HS nuevas (crear en portal si no existen): ver **`docs/hubspot-properties-atribucion-simulador.md`** (internal names, labels y descripciones para pegar en HubSpot).
 
 **Cross-domain** (manual en HubSpot): Settings → Tracking → incluir `simulador.uniacc.cl` y `uniacc.cl`.
 

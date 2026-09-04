@@ -40,7 +40,27 @@ export interface AttributionSnapshot extends UrlAttributionParams, SessionAttrib
   last_touch_timestamp?: string
 }
 
-const PAID_MEDIUMS = new Set(['cpc', 'ppc', 'paid', 'paidsearch', 'display', 'cpm', 'cpv'])
+/**
+ * Taxonomía UTM Marketing UNIACC (utm_medium → traffic_type paid).
+ * Canal → source/medium: Google Search Ads google/cpc, PMax google/pmax,
+ * Demand Gen google/demand_gen, Meta/TikTok paid_social, YouTube Ads youtube/paid_video.
+ */
+const PAID_MEDIUMS = new Set([
+  'cpc',
+  'ppc',
+  'paid',
+  'paidsearch',
+  'display',
+  'cpm',
+  'cpv',
+  'pmax',
+  'demand_gen',
+  'paid_social',
+  'paid_video',
+])
+
+/** Mediums orgánicos de redes → traffic_type social (instagram/facebook organic_social, youtube organic_video). */
+const ORGANIC_SOCIAL_MEDIUMS = new Set(['organic_social', 'organic_video'])
 
 const SEARCH_ENGINES: Array<{ pattern: RegExp; source: string }> = [
   { pattern: /google\./i, source: 'google' },
@@ -55,6 +75,7 @@ const SOCIAL_HOSTS: Array<{ pattern: RegExp; source: string }> = [
   { pattern: /instagram\./i, source: 'instagram' },
   { pattern: /linkedin\./i, source: 'linkedin' },
   { pattern: /tiktok\./i, source: 'tiktok' },
+  { pattern: /youtube\.|youtu\.be/i, source: 'youtube' },
   { pattern: /twitter\.|^t\.co$/i, source: 'twitter' },
   { pattern: /x\.com/i, source: 'twitter' },
 ]
@@ -132,7 +153,8 @@ export function deriveOrganicFromReferrer(referrer: string | undefined): {
 
   const social = matchHost(host, SOCIAL_HOSTS)
   if (social) {
-    return { organic_source: social, organic_medium: 'social' }
+    const organic_medium = social === 'youtube' ? 'organic_video' : 'organic_social'
+    return { organic_source: social, organic_medium }
   }
 
   return { organic_source: host, organic_medium: 'referral' }
@@ -155,10 +177,17 @@ export function deriveTrafficType(data: Partial<AttributionSnapshot>): TrafficTy
   if (hasPaidId || PAID_MEDIUMS.has(medium)) return 'paid'
   if (medium === 'email') return 'email'
   if (medium === 'organic') return 'organic'
+  if (ORGANIC_SOCIAL_MEDIUMS.has(medium)) return 'social'
 
   const organic = deriveOrganicFromReferrer(data.referrer)
   if (organic.organic_medium === 'organic') return 'organic'
-  if (organic.organic_medium === 'social') return 'social'
+  if (
+    organic.organic_medium === 'social'
+    || organic.organic_medium === 'organic_social'
+    || organic.organic_medium === 'organic_video'
+  ) {
+    return 'social'
+  }
   if (organic.organic_medium === 'referral' && !data.utm_source) return 'referral'
   if (data.utm_source) return 'referral'
 
@@ -174,9 +203,13 @@ export function enrichAttributionSnapshot(data: AttributionSnapshot): Attributio
   let organic_source = data.organic_source
   let organic_medium = data.organic_medium
 
-  if (traffic_type === 'organic') {
+  if (traffic_type === 'organic' || traffic_type === 'social') {
     organic_source = organic_source || data.utm_source || organicFromReferrer.organic_source
-    organic_medium = organic_medium || data.utm_medium || organicFromReferrer.organic_medium || 'organic'
+    organic_medium =
+      organic_medium
+      || data.utm_medium
+      || organicFromReferrer.organic_medium
+      || (traffic_type === 'social' ? 'organic_social' : 'organic')
   } else if (!organic_source && organicFromReferrer.organic_source) {
     organic_source = organicFromReferrer.organic_source
     organic_medium = organicFromReferrer.organic_medium
