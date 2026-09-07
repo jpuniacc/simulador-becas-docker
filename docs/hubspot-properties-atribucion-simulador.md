@@ -21,6 +21,11 @@ En cada property, copia el **Label**, **Internal name** y **Description** de la 
 | `organic_source_simulador` | Organic source simulador | **Nombre de la fuente “orgánica” inferida** cuando el tráfico no viene marcado como pago. Ejemplos: `google`, `bing`, `facebook`, `www.uniacc.cl`. Se deduce del referrer o de UTMs (`utm_source` con medium organic). Ayuda a distinguir “Google orgánico” vs “llegó desde uniacc.cl” cuando no hay `gclid` ni ads. |
 | `organic_medium_simulador` | Organic medium simulador | **Cómo se clasificó el canal “orgánico” inferido.** Valores típicos: `organic` (buscador sin pago), `social` (red social sin campaña paid clara), `referral` (otro sitio web). Complementa `organic_source_simulador`: source = “quién”, medium = “tipo de canal”. Ejemplo: source `google` + medium `organic` = búsqueda Google no pagada. |
 | `hutk_simulador` | HubSpot UTK simulador | **Cookie de seguimiento de HubSpot (`hubspotutk`) del visitante en el simulador.** Es el “ID de sesión” que HubSpot usa para unir la visita web con el contacto al crear/actualizar el lead. Permite que HubSpot atribuya la conversión al historial de páginas vistas en el simulador. Si el usuario tiene bloqueador de anuncios, este campo puede quedar vacío. |
+| `adgroup_id_simulador` | Adgroup ID (Simulador) | **ID del grupo de anuncios de Google Ads que trajo al prospecto.** Lo entrega ValueTrack como `{adgroupid}` y llega en la URL como `adgroup_id` o `hsa_grp`. Es un número, ej. `178234567890`. Junto con `campaign_id_simulador` y `ad_id_simulador` permite bajar el reporte a nivel de grupo de anuncios. Queda vacío en campañas de video/Demand Gen que no lo envían. |
+
+> `campaign_id_simulador` y `ad_id_simulador` **ya existen** en el portal. La única pendiente
+> de crear es `adgroup_id_simulador` (el token de la integración no tiene scope
+> `crm.schemas.contacts.write`, así que debe crearla RevOps a mano).
 
 ---
 
@@ -80,6 +85,12 @@ Medio inferido del tráfico orgánico/referido: organic, social, referral. Indic
 
 ```
 Valor de la cookie hubspotutk del visitante en el simulador. Permite a HubSpot vincular el contacto con la sesión de tracking web. Puede estar vacío si el usuario bloquea scripts de HubSpot.
+```
+
+### adgroup_id_simulador
+
+```
+ID del grupo de anuncios de Google Ads (ValueTrack {adgroupid}). Llega en la URL como adgroup_id o hsa_grp. Complementa campaign_id_simulador y ad_id_simulador para reportar a nivel de grupo de anuncios. Vacío en campañas de video y Demand Gen que no lo envían.
 ```
 
 ---

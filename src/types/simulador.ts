@@ -65,6 +65,7 @@ export interface FormData {
   utm_term?: string
   utm_content?: string
   campaign_id?: string
+  adgroup_id?: string
   ad_id?: string
   gclid?: string
   gcl_aw?: string

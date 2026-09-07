@@ -97,6 +97,16 @@ async function updateContactByEmail(email, properties) {
   })
 }
 
+/** Properties que HubSpot rechaza porque no existen en el portal. */
+function unknownPropertiesFrom(body) {
+  const message = typeof body?.message === 'string' ? body.message : ''
+  const names = new Set()
+  for (const match of message.matchAll(/Property "([^"]+)" does not exist/g)) {
+    names.add(match[1])
+  }
+  return [...names]
+}
+
 /**
  * POST /hubspot/contact
  * Body: DTO del simulador (campos prospecto / form). Mapper → HubSpot upsert.
@@ -144,6 +154,18 @@ app.post('/hubspot/contact', async (req, res) => {
       // Carrera create/update: reintentar patch
       result = await updateContactByEmail(email, properties)
       created = false
+    }
+
+    // Una property pendiente de crear en el portal no debe perder el contacto completo
+    if (result.status === 400) {
+      const unknown = unknownPropertiesFrom(result.body)
+      if (unknown.length > 0) {
+        console.warn('[hubspot-api] properties inexistentes, se omiten y se reintenta', unknown)
+        for (const name of unknown) delete properties[name]
+        result = created
+          ? await createContact(properties)
+          : await updateContactByEmail(email, properties)
+      }
     }
 
     if (result.status >= 400) {

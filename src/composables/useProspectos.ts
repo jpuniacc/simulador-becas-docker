@@ -146,6 +146,7 @@ export function useProspectos() {
         utm_term: form.utm_term || null,
         utm_content: form.utm_content || null,
         campaign_id: form.campaign_id || null,
+        adgroup_id: form.adgroup_id || null,
         ad_id: form.ad_id || null,
         gclid: form.gclid || null,
         gcl_aw: form.gcl_aw || null,

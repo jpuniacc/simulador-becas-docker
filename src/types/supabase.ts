@@ -886,6 +886,7 @@ export type Database = {
       prospectos: {
         Row: {
           ad_id: string | null
+          adgroup_id: string | null
           anio_ingreso: number | null
           anio_nacimiento: number | null
           año_egreso: number | null
@@ -964,6 +965,7 @@ export type Database = {
         }
         Insert: {
           ad_id?: string | null
+          adgroup_id?: string | null
           anio_ingreso?: number | null
           anio_nacimiento?: number | null
           año_egreso?: number | null
@@ -1042,6 +1044,7 @@ export type Database = {
         }
         Update: {
           ad_id?: string | null
+          adgroup_id?: string | null
           anio_ingreso?: number | null
           anio_nacimiento?: number | null
           año_egreso?: number | null

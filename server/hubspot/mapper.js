@@ -104,6 +104,7 @@ export function toHubSpotProperties(dto = {}) {
     utm_term_simulador: asString(dto.utm_term_simulador ?? dto.utm_term),
     utm_content_simulador: asString(dto.utm_content_simulador ?? dto.utm_content),
     campaign_id_simulador: asString(dto.campaign_id_simulador ?? dto.campaign_id),
+    adgroup_id_simulador: asString(dto.adgroup_id_simulador ?? dto.adgroup_id),
     ad_id_simulador: asString(dto.ad_id_simulador ?? dto.ad_id),
     hs_google_click_id: asString(
       dto.hs_google_click_id ?? dto.gclid ?? dto.gcl_aw

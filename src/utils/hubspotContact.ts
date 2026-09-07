@@ -88,6 +88,7 @@ export function buildHubSpotContactDto(
     utm_term: form.utm_term || undefined,
     utm_content: form.utm_content || undefined,
     campaign_id: form.campaign_id || undefined,
+    adgroup_id: form.adgroup_id || undefined,
     ad_id: form.ad_id || undefined,
     gclid: form.gclid || undefined,
     gcl_aw: form.gcl_aw || undefined,

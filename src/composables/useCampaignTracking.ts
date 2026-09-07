@@ -19,6 +19,7 @@ export interface UTMParameters {
 
 export interface CustomCampaignParameters {
   campaign_id?: string
+  adgroup_id?: string
   ad_id?: string
   gclid?: string
   gcl_aw?: string
@@ -112,6 +113,7 @@ export function useCampaignTracking() {
     const p = parseUrlAttribution(url)
     return {
       campaign_id: p.campaign_id,
+      adgroup_id: p.adgroup_id,
       ad_id: p.ad_id,
       gclid: p.gclid,
       gcl_aw: p.gcl_aw,

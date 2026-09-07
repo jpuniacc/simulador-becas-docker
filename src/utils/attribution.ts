@@ -12,6 +12,7 @@ export interface UrlAttributionParams {
   utm_term?: string
   utm_content?: string
   campaign_id?: string
+  adgroup_id?: string
   ad_id?: string
   gclid?: string
   gcl_aw?: string
@@ -62,6 +63,31 @@ const PAID_MEDIUMS = new Set([
 /** Mediums orgánicos de redes → traffic_type social (instagram/facebook organic_social, youtube organic_video). */
 const ORGANIC_SOCIAL_MEDIUMS = new Set(['organic_social', 'organic_video'])
 
+/**
+ * Alias de plantillas Google Ads previas a la taxonomía Marketing.
+ * Permite consolidar el histórico sin reprocesarlo a mano.
+ */
+const SOURCE_ALIASES: Record<string, string> = {
+  adwords: 'google',
+  googleads: 'google',
+  google_ads: 'google',
+  'google-ads': 'google',
+  ig: 'instagram',
+  fb: 'facebook',
+}
+
+const MEDIUM_ALIASES: Record<string, string> = {
+  ppc: 'cpc',
+  paidsearch: 'cpc',
+  paid_search: 'cpc',
+  'paid-search': 'cpc',
+  'paid-social': 'paid_social',
+  'paid-video': 'paid_video',
+  'organic-social': 'organic_social',
+  'organic-video': 'organic_video',
+  'demand-gen': 'demand_gen',
+}
+
 const SEARCH_ENGINES: Array<{ pattern: RegExp; source: string }> = [
   { pattern: /google\./i, source: 'google' },
   { pattern: /bing\./i, source: 'bing' },
@@ -82,10 +108,24 @@ const SOCIAL_HOSTS: Array<{ pattern: RegExp; source: string }> = [
 
 function pickParam(params: URLSearchParams, ...keys: string[]): string | undefined {
   for (const key of keys) {
-    const value = params.get(key)
+    const value = params.get(key)?.trim()
     if (value) return value
   }
   return undefined
+}
+
+/** Normaliza utm_source a la taxonomía Marketing (adwords → google). */
+export function normalizeUtmSource(value: string | undefined): string | undefined {
+  const source = value?.trim().toLowerCase()
+  if (!source) return undefined
+  return SOURCE_ALIASES[source] ?? source
+}
+
+/** Normaliza utm_medium a la taxonomía Marketing (ppc → cpc). */
+export function normalizeUtmMedium(value: string | undefined): string | undefined {
+  const medium = value?.trim().toLowerCase()
+  if (!medium) return undefined
+  return MEDIUM_ALIASES[medium] ?? medium
 }
 
 /** Parsea query string de campaña desde una URL. */
@@ -93,13 +133,15 @@ export function parseUrlAttribution(url: string): UrlAttributionParams {
   try {
     const params = new URL(url).searchParams
     return {
-      utm_source: pickParam(params, 'utm_source') ?? undefined,
-      utm_medium: pickParam(params, 'utm_medium') ?? undefined,
+      utm_source: normalizeUtmSource(pickParam(params, 'utm_source')),
+      utm_medium: normalizeUtmMedium(pickParam(params, 'utm_medium')),
       utm_campaign: pickParam(params, 'utm_campaign') ?? undefined,
       utm_term: pickParam(params, 'utm_term') ?? undefined,
       utm_content: pickParam(params, 'utm_content') ?? undefined,
-      campaign_id: pickParam(params, 'campaign_id', 'campaignId') ?? undefined,
-      ad_id: pickParam(params, 'ad_id', 'adId') ?? undefined,
+      // hsa_* y utm_id son los nombres que usan las plantillas ValueTrack vigentes
+      campaign_id: pickParam(params, 'campaign_id', 'campaignId', 'utm_id', 'hsa_cam') ?? undefined,
+      adgroup_id: pickParam(params, 'adgroup_id', 'adgroupId', 'hsa_grp') ?? undefined,
+      ad_id: pickParam(params, 'ad_id', 'adId', 'hsa_ad') ?? undefined,
       gclid: pickParam(params, 'gclid') ?? undefined,
       gcl_aw: pickParam(params, '_gcl_aw') ?? undefined,
       fbclid: pickParam(params, 'fbclid') ?? undefined,
@@ -162,7 +204,7 @@ export function deriveOrganicFromReferrer(referrer: string | undefined): {
 
 /** Clasifica el tipo de tráfico según params y referrer. */
 export function deriveTrafficType(data: Partial<AttributionSnapshot>): TrafficType {
-  const medium = (data.utm_medium ?? '').toLowerCase()
+  const medium = normalizeUtmMedium(data.utm_medium) ?? ''
   const hasPaidId = Boolean(
     resolveGoogleClickId(data)
     || data.fbclid
@@ -196,18 +238,25 @@ export function deriveTrafficType(data: Partial<AttributionSnapshot>): TrafficTy
 
 /** Enriquece snapshot con gclid normalizado, orgánico y traffic_type. */
 export function enrichAttributionSnapshot(data: AttributionSnapshot): AttributionSnapshot {
-  const gclid = resolveGoogleClickId(data)
-  const organicFromReferrer = deriveOrganicFromReferrer(data.referrer)
-  const traffic_type = deriveTrafficType({ ...data, gclid })
+  // Normaliza también snapshots antiguos ya persistidos en localStorage
+  const normalized: AttributionSnapshot = {
+    ...data,
+    utm_source: normalizeUtmSource(data.utm_source),
+    utm_medium: normalizeUtmMedium(data.utm_medium),
+  }
 
-  let organic_source = data.organic_source
-  let organic_medium = data.organic_medium
+  const gclid = resolveGoogleClickId(normalized)
+  const organicFromReferrer = deriveOrganicFromReferrer(normalized.referrer)
+  const traffic_type = deriveTrafficType({ ...normalized, gclid })
+
+  let organic_source = normalized.organic_source
+  let organic_medium = normalized.organic_medium
 
   if (traffic_type === 'organic' || traffic_type === 'social') {
-    organic_source = organic_source || data.utm_source || organicFromReferrer.organic_source
+    organic_source = organic_source || normalized.utm_source || organicFromReferrer.organic_source
     organic_medium =
       organic_medium
-      || data.utm_medium
+      || normalized.utm_medium
       || organicFromReferrer.organic_medium
       || (traffic_type === 'social' ? 'organic_social' : 'organic')
   } else if (!organic_source && organicFromReferrer.organic_source) {
@@ -216,7 +265,7 @@ export function enrichAttributionSnapshot(data: AttributionSnapshot): Attributio
   }
 
   return {
-    ...data,
+    ...normalized,
     gclid,
     organic_source,
     organic_medium,

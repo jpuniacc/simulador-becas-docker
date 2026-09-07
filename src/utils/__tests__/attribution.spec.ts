@@ -18,6 +18,42 @@ describe('parseUrlAttribution', () => {
       gcl_aw: 'GCL.test',
     })
   })
+
+  it('normaliza alias legacy adwords/ppc a la taxonomía Marketing', () => {
+    expect(
+      parseUrlAttribution('https://simulador.uniacc.cl/?utm_source=adwords&utm_medium=ppc')
+    ).toMatchObject({
+      utm_source: 'google',
+      utm_medium: 'cpc',
+    })
+  })
+
+  it('lee campaign_id/adgroup_id/ad_id desde los alias ValueTrack hsa_*', () => {
+    const url =
+      'https://simulador.uniacc.cl/?utm_id=23980021855&hsa_grp=987&hsa_ad=654'
+    expect(parseUrlAttribution(url)).toMatchObject({
+      campaign_id: '23980021855',
+      adgroup_id: '987',
+      ad_id: '654',
+    })
+  })
+
+  it('prefiere los nombres explícitos por sobre los alias hsa_*', () => {
+    const url =
+      'https://simulador.uniacc.cl/?campaign_id=111&utm_id=999&adgroup_id=222&hsa_grp=888'
+    expect(parseUrlAttribution(url)).toMatchObject({
+      campaign_id: '111',
+      adgroup_id: '222',
+    })
+  })
+
+  it('ignora ValueTrack vacíos en Demand Gen (utm_term, hsa_kw)', () => {
+    const url =
+      'https://simulador.uniacc.cl/?utm_source=google&utm_medium=demand_gen&utm_term=&hsa_kw=&hsa_grp='
+    const result = parseUrlAttribution(url)
+    expect(result.utm_term).toBeUndefined()
+    expect(result.adgroup_id).toBeUndefined()
+  })
 })
 
 describe('resolveGoogleClickId', () => {
@@ -85,6 +121,10 @@ describe('deriveTrafficType', () => {
     expect(deriveTrafficType({ utm_source, utm_medium })).toBe('social')
   })
 
+  it('paid con alias legacy adwords/ppc', () => {
+    expect(deriveTrafficType({ utm_source: 'adwords', utm_medium: 'ppc' })).toBe('paid')
+  })
+
   it('organic por google/organic', () => {
     expect(deriveTrafficType({ utm_source: 'google', utm_medium: 'organic' })).toBe('organic')
   })
@@ -97,6 +137,26 @@ describe('enrichAttributionSnapshot', () => {
       referrer: 'https://www.google.com/',
     })
     expect(result.gclid).toBe('GCL.from_aw')
+    expect(result.traffic_type).toBe('paid')
+  })
+
+  it('conserva utm_source=youtube aunque llegue con gclid de Google Ads', () => {
+    const result = enrichAttributionSnapshot({
+      utm_source: 'youtube',
+      utm_medium: 'paid_video',
+      gclid: 'Cj0KCQtest',
+    })
+    expect(result.utm_source).toBe('youtube')
+    expect(result.traffic_type).toBe('paid')
+  })
+
+  it('normaliza snapshots legacy guardados en localStorage', () => {
+    const result = enrichAttributionSnapshot({
+      utm_source: 'adwords',
+      utm_medium: 'ppc',
+    })
+    expect(result.utm_source).toBe('google')
+    expect(result.utm_medium).toBe('cpc')
     expect(result.traffic_type).toBe('paid')
   })
 
