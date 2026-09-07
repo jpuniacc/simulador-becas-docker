@@ -190,6 +190,37 @@ https://simulador-dev.uniacc.cl/simulador?utm_source=google&utm_medium=cpc&utm_c
 
 ---
 
+## Plantillas ValueTrack propuestas por Marketing
+
+### Campaña 1 — Demand Gen (ID 23980021855)
+
+`{keyword}` llega vacío en Demand Gen; el simulador lo descarta en vez de guardar `""`.
+
+```
+https://simulador-dev.uniacc.cl/simulador?utm_source=google&utm_medium=demand_gen&utm_campaign=simulador_general&utm_term=&utm_id=23980021855&campaign_id=23980021855&adgroup_id=178234567890&ad_id=712345678901&hsa_acc=7495669679&hsa_cam=23980021855&hsa_grp=178234567890&hsa_ad=712345678901&hsa_src=x&hsa_tgt=&hsa_kw=&hsa_mt=&hsa_net=adwords&hsa_ver=3
+```
+
+Esperado: `traffic_type: "paid"`, `utm_term` ausente, `campaign_id`/`adgroup_id`/`ad_id` poblados.
+
+### Campaña 2 — YouTube Video Reach (ID 24013030977)
+
+```
+https://simulador-dev.uniacc.cl/simulador?utm_source=youtube&utm_medium=paid_video&utm_campaign=simulador_video_reach&utm_id=24013030977&campaign_id=24013030977&ad_id=712345678901&gclid=Cj0KCQiAtestYouTube&hsa_acc=7495669679&hsa_net=adwords&hsa_ver=3
+```
+
+Esperado: `utm_source: "youtube"` (el `gclid` no lo sobrescribe) y `traffic_type: "paid"`.
+
+### Plantilla legacy sin cambios (normalización)
+
+```
+https://simulador-dev.uniacc.cl/simulador?utm_source=adwords&utm_medium=ppc&utm_id=23980021855&hsa_grp=178234567890&hsa_ad=712345678901
+```
+
+Esperado: `utm_source: "google"`, `utm_medium: "cpc"`, y `campaign_id`/`adgroup_id`/`ad_id`
+capturados desde los alias `utm_id`/`hsa_*` aunque la plantilla no se haya corregido.
+
+---
+
 ## Tras completar simulación (consentimiento OK)
 
 En consola deberían aparecer:
