@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Modal guiado del paso 2 de pregrado (VOU v4, fase 3):
- *   1 · Selección de carrera → 2 · Financiamiento → 3 · Motor de becas.
+ *   1 · Selección de carrera → 2 · Financiamiento → «Ver mis resultados» (directo al resumen, que hace el cálculo).
  * Trabaja sobre un borrador local y lo entrega al padre (`commit`) al avanzar y al cerrar.
  * No escribe en ninguna parte: el lead se dispara recién en el resumen.
  */
@@ -10,8 +10,6 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import SubpasoCarrera from './subpasos/SubpasoCarrera.vue'
 import SubpasoFinanciamiento, { type BorradorFinanciamiento } from './subpasos/SubpasoFinanciamiento.vue'
-import SubpasoMotorBecas from './subpasos/SubpasoMotorBecas.vue'
-import { useMotorBecas } from '@/composables/useMotorBecas'
 import {
   esEgresado,
   validarSubpasoCarrera,
@@ -26,7 +24,7 @@ type CarreraOpcion = CarreraBuscable & { id: number }
 
 interface Props {
   visible: boolean
-  startStep?: 1 | 2 | 3
+  startStep?: 1 | 2
   consultaInicial?: string
   formData: Partial<FormData>
   carreras: CarreraOpcion[]
@@ -52,9 +50,10 @@ const emit = defineEmits<{
   'ver-resultados': []
 }>()
 
-const TITULOS = ['Selección de carrera', 'Financiamiento', 'Motor de becas'] as const
+const TITULOS = ['Selección de carrera', 'Financiamiento'] as const
+const TOTAL_PASOS = TITULOS.length
 
-const paso = ref<1 | 2 | 3>(1)
+const paso = ref<1 | 2>(1)
 const consulta = ref('')
 const carreraDraft = ref<{ carrera: string; carreraId: number }>({ carrera: '', carreraId: 0 })
 const fin = ref<BorradorFinanciamiento>(blanco())
@@ -64,8 +63,6 @@ const regionRef = ref<HTMLElement | null>(null)
 const enfocarBusqueda = ref(false)
 const subCarreraRef = ref<InstanceType<typeof SubpasoCarrera> | null>(null)
 let elementoPrevio: HTMLElement | null = null
-
-const motor = useMotorBecas()
 
 function blanco(): BorradorFinanciamiento {
   return {
@@ -145,36 +142,27 @@ const enfocarRegion = async () => {
   else regionRef.value?.focus()
 }
 
-const calcularMotor = () => motor.calcular({ ...props.formData, ...aDatos() })
-
-const irA = async (nuevo: 1 | 2 | 3) => {
+const irA = async (nuevo: 1 | 2) => {
   paso.value = nuevo
-  if (nuevo === 3) calcularMotor()
   await enfocarRegion()
 }
 
 const siguiente = async () => {
-  if (paso.value === 1) {
-    intento.value[1] = true
-    if (Object.keys(validarSubpasoCarrera(estado.value)).length) return
-    commit()
-    await irA(2)
-  } else if (paso.value === 2) {
-    intento.value[2] = true
-    if (Object.keys(validarSubpasoFinanciamiento(estado.value)).length) return
-    commit()
-    await irA(3)
-  }
+  intento.value[1] = true
+  if (Object.keys(validarSubpasoCarrera(estado.value)).length) return
+  commit()
+  await irA(2)
 }
 
 const atras = () => {
-  if (paso.value > 1) irA((paso.value - 1) as 1 | 2)
+  if (paso.value > 1) irA(1)
 }
 
+/** Último paso: valida todo, entrega lo respondido y deja que el resumen haga el cálculo (y dispare el lead). */
 const verResultados = () => {
-  // El motor ya validó los pasos 1 y 2; se revalida por si cambió algo desde otro lado
   if (Object.keys(validarSubpasoCarrera(estado.value)).length) { intento.value[1] = true; irA(1); return }
-  if (Object.keys(validarSubpasoFinanciamiento(estado.value)).length) { intento.value[2] = true; irA(2); return }
+  intento.value[2] = true
+  if (Object.keys(validarSubpasoFinanciamiento(estado.value)).length) return
   commit()
   emit('update:visible', false)
   emit('ver-resultados')
@@ -203,11 +191,8 @@ watch(
     desdeProps()
     consulta.value = props.consultaInicial
     intento.value = { 1: false, 2: false }
-    motor.resultado.value = null
-    motor.error.value = null
-    paso.value = props.startStep
+    paso.value = props.startStep === 2 ? 2 : 1
     enfocarBusqueda.value = props.startStep === 1 && !carreraDraft.value.carreraId && window.innerWidth > 640
-    if (props.startStep === 3) calcularMotor()
   },
   { immediate: true }
 )
@@ -235,12 +220,12 @@ const cerrar = (v: boolean) => emit('update:visible', v)
   >
     <template #header>
       <h2 id="msc-titulo" class="msc-titulo" data-testid="modal-titulo">
-        Paso {{ paso }} de 3 · {{ TITULOS[paso - 1] }}
+        Paso {{ paso }} de {{ TOTAL_PASOS }} · {{ TITULOS[paso - 1] }}
       </h2>
     </template>
 
-    <div class="msc-progreso" role="progressbar" aria-label="Avance de la simulación" aria-valuemin="1" aria-valuemax="3" :aria-valuenow="paso" :aria-valuetext="`Paso ${paso} de 3`">
-      <span v-for="n in 3" :key="n" class="msc-barra" :class="{ 'msc-barra-on': n <= paso }" />
+    <div class="msc-progreso" role="progressbar" aria-label="Avance de la simulación" aria-valuemin="1" aria-valuemax="2" :aria-valuenow="paso" :aria-valuetext="`Paso ${paso} de ${TOTAL_PASOS}`">
+      <span v-for="n in TOTAL_PASOS" :key="n" class="msc-barra" :class="{ 'msc-barra-on': n <= paso }" />
     </div>
 
     <div ref="regionRef" tabindex="-1" :autofocus="!enfocarBusqueda" class="msc-region" :aria-label="TITULOS[paso - 1]">
@@ -265,19 +250,12 @@ const cerrar = (v: boolean) => emit('update:visible', v)
         :deciles-loading="decilesLoading"
         :deciles-error="decilesError"
       />
-      <SubpasoMotorBecas
-        v-if="paso === 3"
-        :resultado="motor.resultado.value"
-        :cargando="motor.cargando.value"
-        :error="motor.error.value"
-        @reintentar="calcularMotor"
-      />
     </div>
 
     <template #footer>
       <Button v-if="paso > 1" type="button" label="Atrás" icon="pi pi-arrow-left" severity="secondary" data-testid="modal-atras" @click="atras" />
       <Button
-        v-if="paso < 3"
+        v-if="paso === 1"
         type="button"
         label="Siguiente"
         icon="pi pi-arrow-right"
@@ -293,7 +271,6 @@ const cerrar = (v: boolean) => emit('update:visible', v)
         icon="pi pi-arrow-right"
         icon-pos="right"
         class="msc-principal"
-        :disabled="motor.cargando.value || !!motor.error.value"
         data-testid="modal-ver-resultados"
         @click="verResultados"
       />
@@ -309,7 +286,7 @@ const cerrar = (v: boolean) => emit('update:visible', v)
 .msc-dialog .msc-content { padding: 0.5rem 1.25rem 1rem; }
 .msc-dialog .msc-footer { display: flex; gap: 0.75rem; padding: 0.75rem 1.25rem 1rem; }
 .msc-dialog .msc-footer .p-button { flex: 1; justify-content: center; min-height: 2.75rem; }
-.msc-dialog .msc-progreso { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.375rem; margin-bottom: 1rem; }
+.msc-dialog .msc-progreso { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.375rem; margin-bottom: 1rem; }
 .msc-dialog .msc-barra { height: 0.25rem; border-radius: 999px; background: #cbd5e1; }
 .msc-dialog .msc-barra-on { background: #4b8fc4; }
 .msc-dialog .msc-region { outline: none; }

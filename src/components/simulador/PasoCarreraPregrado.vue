@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Paso 2 de pregrado (VOU v4, fase 3): buscador que abre un modal guiado
- * (carrera → financiamiento → motor de becas). Reemplaza a `CareerFinancing` SOLO en /simulador.
+ * (carrera → financiamiento → resumen). Reemplaza a `CareerFinancing` SOLO en /simulador.
  * Mantiene el mismo contrato con Simulador2View: update:form-data, validation-change,
  * isFormValid, markAsSubmitted y getMissingFields.
  */
@@ -40,7 +40,7 @@ const { carrerasVigentes, loading: carrerasLoading, inicializar: inicializarCarr
 const { deciles, loading: decilesLoading, error: decilesError, cargarDeciles, formatearRango } = useDeciles()
 
 const modalVisible = ref(false)
-const pasoInicial = ref<1 | 2 | 3>(1)
+const pasoInicial = ref<1 | 2>(1)
 const consultaInicial = ref('')
 const consulta = ref('')
 const submitted = ref(false)
@@ -87,7 +87,7 @@ const textoEstado = computed(() => {
   return `Sí · ${tipos || 'sin tipo seleccionado'}${d ? ` · Renta ${formatearRango(d)}` : ''}`
 })
 
-const abrir = (paso: 1 | 2 | 3 = 1, consultaTexto = '') => {
+const abrir = (paso: 1 | 2 = 1, consultaTexto = '') => {
   pasoInicial.value = paso
   consultaInicial.value = consultaTexto
   modalVisible.value = true

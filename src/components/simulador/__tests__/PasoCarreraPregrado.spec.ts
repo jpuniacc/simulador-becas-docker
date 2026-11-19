@@ -85,6 +85,7 @@ const abrir = async (w: VueWrapper) => {
 }
 const titulo = (w: VueWrapper) => w.get('[data-testid="modal-titulo"]').text()
 const siguiente = async (w: VueWrapper) => { await w.get('[data-testid="modal-siguiente"]').trigger('click'); await flushPromises() }
+const pulsarVer = async (w: VueWrapper) => { await w.get('[data-testid="modal-ver-resultados"]').trigger('click'); await flushPromises() }
 const elegir = async (w: VueWrapper, id: number) => { await w.get(`[data-carrera-id="${id}"]`).trigger('click'); await flushPromises() }
 const radio = async (w: VueWrapper, grupo: string, valor: 'Sí' | 'No') => {
   const b = w.get(`[data-testid="${grupo}"]`).findAll('button').find((x) => x.text() === valor)!
@@ -108,10 +109,10 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     expect(w.find('[data-testid="modal-simulacion"]').exists()).toBe(false)
   })
 
-  it('Buscar abre el modal en «Paso 1 de 3 · Selección de carrera» y muestra modalidad y semestres', async () => {
+  it('Buscar abre el modal en «Paso 1 de 2 · Selección de carrera» y muestra modalidad y semestres', async () => {
     const { w } = await montar()
     await abrir(w)
-    expect(titulo(w)).toBe('Paso 1 de 3 · Selección de carrera')
+    expect(titulo(w)).toBe('Paso 1 de 2 · Selección de carrera')
     const lista = txt(w)
     expect(lista).toContain('Pregrado · Diurno · 10 semestres')
     expect(lista).toContain('Pregrado · Vespertino · 10 semestres')
@@ -132,15 +133,15 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     await abrir(w)
     await siguiente(w)
     expect(w.get('[data-testid="error-carrera"]').text()).toBe('Selecciona una carrera para continuar.')
-    expect(titulo(w)).toContain('Paso 1 de 3')
+    expect(titulo(w)).toContain('Paso 1 de 2')
     await elegir(w, 1)
     expect(w.find('[data-testid="error-carrera"]').exists()).toBe(false)
     await siguiente(w)
-    expect(titulo(w)).toBe('Paso 2 de 3 · Financiamiento')
+    expect(titulo(w)).toBe('Paso 2 de 2 · Financiamiento')
     expect(w.get('[role="progressbar"]').attributes('aria-valuenow')).toBe('2')
     await w.get('[data-testid="modal-atras"]').trigger('click')
     await flushPromises()
-    expect(titulo(w)).toContain('Paso 1 de 3')
+    expect(titulo(w)).toContain('Paso 1 de 2')
   })
 
   it('sub-step 2: muestra errores claros de PAES, puntajes, financiamiento, opciones y tramo', async () => {
@@ -148,24 +149,24 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     await abrir(w)
     await elegir(w, 1)
     await siguiente(w)
-    await siguiente(w)
+    await pulsarVer(w)
     expect(w.get('[data-testid="error-paes"]').text()).toBe('Indica si rendiste la PAES.')
     expect(w.get('[data-testid="error-estado"]').text()).toBe('Indica si piensas usar financiamiento del Estado.')
 
     await radio(w, 'paes-toggle', 'Sí')
-    await siguiente(w)
+    await pulsarVer(w)
     expect(w.get('[data-testid="error-lenguaje"]').text()).toContain('Comprensión Lectora')
     expect(w.get('[data-testid="error-matematica"]').text()).toContain('Matemática 1')
 
     await w.get('#sf-lenguaje').setValue('100')
     await w.get('#sf-matematica').setValue('650')
     await radio(w, 'estado-toggle', 'Sí')
-    await siguiente(w)
+    await pulsarVer(w)
     expect(w.get('[data-testid="error-lenguaje"]').text()).toContain('entre 150 y 1000')
     expect(w.find('[data-testid="error-matematica"]').exists()).toBe(false)
     expect(w.get('[data-testid="error-opciones"]').text()).toBe('Selecciona al menos una opción: CAE o Becas ministeriales.')
     expect(w.get('[data-testid="error-decil"]').text()).toBe('Selecciona tu tramo de renta mensual.')
-    expect(titulo(w)).toContain('Paso 2 de 3')
+    expect(titulo(w)).toContain('Paso 2 de 2')
   })
 
   it('la nota de requisitos siempre está visible en el sub-step 2', async () => {
@@ -178,7 +179,21 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     expect(w.get('[data-testid="nota-requisitos"]').text()).toContain('preselección y selección')
   })
 
-  it('recorrido completo caso A: motor con beca, «Ver mis resultados» cierra y avisa al padre (sin lead ni escrituras)', async () => {
+  it('el modal tiene 2 pasos: barra de 2 segmentos y, en el paso 2, el botón final «Ver mis resultados» (sin paso de motor de becas)', async () => {
+    const { w } = await montar()
+    await abrir(w)
+    expect(w.findAll('.msc-barra')).toHaveLength(2)
+    expect(w.get('[role="progressbar"]').attributes('aria-valuemax')).toBe('2')
+    expect(w.find('[data-testid="modal-ver-resultados"]').exists()).toBe(false)
+    await elegir(w, 1)
+    await siguiente(w)
+    expect(titulo(w)).toBe('Paso 2 de 2 · Financiamiento')
+    expect(w.find('[data-testid="modal-siguiente"]').exists()).toBe(false)
+    expect(w.get('[data-testid="modal-ver-resultados"]').text()).toBe('Ver mis resultados')
+    expect(w.find('[data-testid="subpaso-motor"]').exists()).toBe(false)
+  })
+
+  it('recorrido completo caso A: «Ver mis resultados» en el paso 2 cierra y avisa al padre (sin lead ni escrituras)', async () => {
     const { w, getDatos, verResultados } = await montar()
     await abrir(w)
     await elegir(w, 1)
@@ -192,12 +207,6 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     await checks[1].setValue(true) // Becas ministeriales
     w.findComponent({ name: 'Dropdown' }).vm.$emit('update:modelValue', 3)
     await flushPromises()
-    await siguiente(w)
-
-    expect(titulo(w)).toBe('Paso 3 de 3 · Motor de becas')
-    expect(w.get('[data-testid="motor-beca"]').text()).toBe('Beca Mérito Académico PAES · 25% · Sujeta a requisitos')
-    expect(txt(w.get('[data-testid="motor-arancel"]') as any)).toContain('4.190.000')
-    expect(txt(w.get('[data-testid="motor-descuento"]') as any)).toContain('1.047.500')
 
     await w.get('[data-testid="modal-ver-resultados"]').trigger('click')
     await flushPromises()
@@ -212,17 +221,30 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     expect(escrituras).not.toHaveBeenCalled()
   })
 
-  it('caso B: sin financiamiento y sin beca muestra el texto neutro', async () => {
-    const { w } = await montar()
+  it('«Ver mis resultados» con el paso 2 incompleto muestra los errores y no avisa al padre', async () => {
+    const { w, verResultados } = await montar()
+    await abrir(w)
+    await elegir(w, 1)
+    await siguiente(w)
+    await w.get('[data-testid="modal-ver-resultados"]').trigger('click')
+    await flushPromises()
+    expect(verResultados).not.toHaveBeenCalled()
+    expect(w.get('[data-testid="error-paes"]').text()).toBe('Indica si rendiste la PAES.')
+    expect(titulo(w)).toBe('Paso 2 de 2 · Financiamiento')
+  })
+
+  it('caso B: PAES «No» y sin financiamiento del Estado entrega paes en falso y avisa al padre', async () => {
+    const { w, getDatos, verResultados } = await montar()
     await abrir(w)
     await elegir(w, 3)
     await siguiente(w)
     await radio(w, 'paes-toggle', 'No')
     await radio(w, 'estado-toggle', 'No')
-    await siguiente(w)
-    expect(w.get('[data-testid="motor-sin-beca"]').text()).toBe('Con tus datos no identificamos una beca UNIACC; Admisión puede revisar tu caso')
-    expect(txt(w.get('[data-testid="motor-arancel"]') as any)).toContain('4.020.000')
-    expect(w.find('[data-testid="motor-descuento"]').exists()).toBe(false)
+    await w.get('[data-testid="modal-ver-resultados"]').trigger('click')
+    await flushPromises()
+    expect(verResultados).toHaveBeenCalledTimes(1)
+    expect(getDatos()).toMatchObject({ carreraId: 3, rendioPAES: false, paesRespondido: true, usaFinanciamientoEstado: false })
+    expect(escrituras).not.toHaveBeenCalled()
   })
 
   it('tras cerrar el modal, el paso 2 muestra la carrera elegida y las respuestas con opción de editar', async () => {
@@ -232,7 +254,6 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     await siguiente(w)
     await radio(w, 'paes-toggle', 'No')
     await radio(w, 'estado-toggle', 'No')
-    await siguiente(w)
     await w.get('[data-testid="modal-ver-resultados"]').trigger('click')
     await flushPromises()
     expect(getDatos().carreraId).toBe(1)
@@ -249,7 +270,7 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     // Editar reabre el modal directo en Financiamiento, conservando lo respondido
     await w.get('[data-testid="editar-respuestas"]').trigger('click')
     await flushPromises()
-    expect(titulo(w)).toBe('Paso 2 de 3 · Financiamiento')
+    expect(titulo(w)).toBe('Paso 2 de 2 · Financiamiento')
     const noPaes = w.get('[data-testid="paes-toggle"]').findAll('button').find((b) => b.text() === 'No')!
     expect(noPaes.attributes('aria-checked')).toBe('true')
   })
@@ -291,13 +312,15 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
   })
 
   it('quien no es egresado no responde PAES ni financiamiento y puede continuar', async () => {
-    const { w } = await montar({ nivelEducativo: 'Educación media incompleta' })
+    const { w, verResultados } = await montar({ nivelEducativo: 'Educación media incompleta' })
     await abrir(w)
     await elegir(w, 1)
     await siguiente(w)
     expect(w.find('[data-testid="financiamiento-no-aplica"]').exists()).toBe(true)
-    await siguiente(w)
-    expect(titulo(w)).toBe('Paso 3 de 3 · Motor de becas')
+    expect(titulo(w)).toBe('Paso 2 de 2 · Financiamiento')
+    await w.get('[data-testid="modal-ver-resultados"]').trigger('click')
+    await flushPromises()
+    expect(verResultados).toHaveBeenCalledTimes(1)
   })
 
   it('accesibilidad: el diálogo es modal, tiene nombre y el cierre es un botón con etiqueta', async () => {
