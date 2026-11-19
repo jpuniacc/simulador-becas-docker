@@ -72,14 +72,17 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
   line-height: 1.1;
   opacity: 0.85;
 }
+</style>
 
-:global(html.dark) .cuota-btn {
+<!-- Modo oscuro: sin "scoped" para que la clase html.dark gane a los estilos claros -->
+<style>
+html.dark .cuota-btn {
   background: #1e293b;
   border-color: #475569;
   color: #e2e8f0;
 }
 
-:global(html.dark) .cuota-btn-on {
+html.dark .cuota-btn-on {
   background: #3b82f6;
   border-color: #3b82f6;
   color: #fff;

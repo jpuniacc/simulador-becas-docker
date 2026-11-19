@@ -37,6 +37,10 @@ export interface FormData {
 
   // PAES
   rendioPAES: boolean
+  /** Paso 2 pregrado (modal): el usuario ya respondió «¿Rendiste la PAES?» (Sí o No). */
+  paesRespondido?: boolean
+  /** Paso 2 pregrado (modal): respuesta a «¿Piensas usar financiamiento del Estado?» (undefined = sin responder). */
+  usaFinanciamientoEstado?: boolean
   paes: {
     matematica: number | null
     lenguaje: number | null

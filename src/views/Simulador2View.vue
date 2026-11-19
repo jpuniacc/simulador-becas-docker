@@ -10,7 +10,7 @@ import Step from 'primevue/step';
 import StepPanel from 'primevue/steppanel';
 import Button from 'primevue/button';
 import PersonalAcademicData from '@/components/simulador/PersonalAcademicData.vue';
-import CareerFinancing from '@/components/simulador/CareerFinancing.vue';
+import PasoCarreraPregrado from '@/components/simulador/PasoCarreraPregrado.vue';
 import ResumenPregrado from '@/components/simulador/ResumenPregrado.vue';
 import type { FormData } from '@/types/simulador';
 
@@ -77,7 +77,7 @@ watch(personalDataRef, (ref) => {
 });
 
 // Referencia al componente de carrera y financiamiento
-const careerFinancingRef = ref<InstanceType<typeof CareerFinancing> | null>(null);
+const careerFinancingRef = ref<InstanceType<typeof PasoCarreraPregrado> | null>(null);
 
 // Referencia al componente de resultados
 const resultsRef = ref<InstanceType<typeof ResumenPregrado> | null>(null);
@@ -274,9 +274,10 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                     </StepPanel>
                     <StepPanel v-slot="{ activateCallback }" value="2">
                         <div class="flex flex-col">
-                            <CareerFinancing ref="careerFinancingRef" :form-data="formData"
+                            <PasoCarreraPregrado ref="careerFinancingRef" :form-data="formData"
                                 @update:form-data="handleFormDataUpdate"
-                                @validation-change="handleValidationChangeStep2" />
+                                @validation-change="handleValidationChangeStep2"
+                                @ver-resultados="handleNextToStep3(activateCallback)" />
                         </div>
                         <div class="flex pt-6 justify-between">
                             <Button label="Atras" class="m-4" severity="secondary" icon="pi pi-arrow-left"
@@ -325,7 +326,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                                     })
                                 }"
                             >
-                                <Button label="Ver resultados" icon="pi pi-arrow-right" iconPos="right"
+                                <Button label="Ver mis resultados" icon="pi pi-arrow-right" iconPos="right"
                                     :disabled="!isStep2Valid" />
                             </div>
                         </div>

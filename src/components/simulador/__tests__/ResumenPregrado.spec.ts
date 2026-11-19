@@ -27,7 +27,7 @@ const beca = {
 
 const texto = (w: ReturnType<typeof montar>) => w.text().replace(/\u00a0/g, ' ')
 
-const montar = (opts: { conBeca?: boolean; cae?: boolean; ministeriales?: boolean } = {}) => {
+const montar = (opts: { conBeca?: boolean; cae?: boolean; ministeriales?: boolean; nInformativas?: number } = {}) => {
   const pinia = createPinia()
   setActivePinia(pinia)
   const carreras = useCarrerasStore()
@@ -53,7 +53,7 @@ const montar = (opts: { conBeca?: boolean; cae?: boolean; ministeriales?: boolea
   vi.spyOn(descuentos, 'cargarDescuentosModoPago').mockResolvedValue(undefined as any)
   vi.spyOn(descuentos, 'cargarDescuentosPagoAnticipado').mockResolvedValue(undefined as any)
   const becas = useBecasStore()
-  becas.becasInformativas = [{ id: 'i1', nombre: 'Beca Alumni UNIACC', descripcion: 'x'.repeat(300) }] as any
+  becas.becasInformativas = Array.from({ length: opts.nInformativas ?? 1 }, (_, i) => ({ id: `i${i + 1}`, nombre: `Beca ${i + 1} UNIACC`, descripcion: 'x'.repeat(300) })) as any
   vi.spyOn(becas, 'cargarBecasInformativas').mockResolvedValue(undefined as any)
   return mount(ResumenPregrado, { global: { plugins: [pinia, [PrimeVue, {}]] } })
 }
@@ -136,5 +136,53 @@ describe('ResumenPregrado', () => {
     expect(simulador.simulate).toHaveBeenCalledWith({ arancelPorId: true })
     expect(registrarLead).toHaveBeenCalledTimes(1)
     expect(registrarLead.mock.calls[0][0].segmentacion).toBe('pregrado')
+  })
+
+  describe('carrusel de Becas Adicionales', () => {
+    const scrollTo = vi.fn()
+    beforeEach(() => {
+      scrollTo.mockClear()
+      ;(Element.prototype as any).scrollTo = scrollTo
+    })
+
+    it('mantiene todas las tarjetas, un punto por beca y «Ver más» en cada una', () => {
+      const w = montar({ nInformativas: 4 })
+      expect(w.findAll('[data-testid="becas-adicionales"] article')).toHaveLength(4)
+      expect(w.findAll('[data-testid="carrusel-puntos"] button')).toHaveLength(4)
+      expect(w.findAll('[data-testid="becas-adicionales"] article button').every((b) => b.text().includes('Ver más'))).toBe(true)
+      expect(w.get('[data-testid="carrusel-pista"]').attributes('aria-roledescription')).toBe('carrusel')
+    })
+
+    it('no hay flechas anterior/siguiente; los puntos desplazan el carrusel y marcan la posición actual', async () => {
+      const w = montar({ nInformativas: 3 })
+      await flushPromises()
+      const puntos = () => w.findAll('[data-testid="carrusel-puntos"] button')
+      expect(w.find('[data-testid="carrusel-prev"]').exists()).toBe(false)
+      expect(w.find('[data-testid="carrusel-next"]').exists()).toBe(false)
+      expect(puntos()[0].attributes('aria-current')).toBe('true')
+
+      await puntos()[2].trigger('click')
+      expect(scrollTo).toHaveBeenCalledTimes(1)
+      expect(puntos()[2].attributes('aria-current')).toBe('true')
+
+      await puntos()[1].trigger('click')
+      expect(puntos()[1].attributes('aria-current')).toBe('true')
+    })
+
+    it('con el teclado (← →) en la pista cambia de tarjeta', async () => {
+      const w = montar({ nInformativas: 3 })
+      await flushPromises()
+      const pista = w.get('[data-testid="carrusel-pista"]')
+      await pista.trigger('keydown', { key: 'ArrowRight' })
+      expect(w.findAll('[data-testid="carrusel-puntos"] button')[1].attributes('aria-current')).toBe('true')
+      await pista.trigger('keydown', { key: 'ArrowLeft' })
+      expect(w.findAll('[data-testid="carrusel-puntos"] button')[0].attributes('aria-current')).toBe('true')
+    })
+
+    it('«Ver más» sigue abriendo el detalle de la beca', async () => {
+      const w = montar({ nInformativas: 2 })
+      await w.findAll('[data-testid="becas-adicionales"] article button')[1].trigger('click')
+      expect(document.body.textContent).toContain('Beca 2 UNIACC')
+    })
   })
 })

@@ -145,27 +145,30 @@ const abierto = ref(false)
 .ref-estado-monto {
   margin-top: 0.375rem;
 }
+</style>
 
-:global(html.dark) .ref-estado {
+<!-- Modo oscuro: sin "scoped" para que la clase html.dark gane a los estilos claros -->
+<style>
+html.dark .ref-estado {
   background: #1e293b;
   border-color: #475569;
 }
 
-:global(html.dark) .ref-estado-head,
-:global(html.dark) .ref-estado-item h4 {
+html.dark .ref-estado-head,
+html.dark .ref-estado-item h4 {
   color: #e2e8f0;
 }
 
-:global(html.dark) .ref-estado-body {
+html.dark .ref-estado-body {
   border-color: #475569;
   color: #cbd5e1;
 }
 
-:global(html.dark) .ref-estado-aviso {
+html.dark .ref-estado-aviso {
   color: #94a3b8;
 }
 
-:global(html.dark) .ref-estado-item a {
+html.dark .ref-estado-item a {
   color: #93c5fd;
 }
 </style>

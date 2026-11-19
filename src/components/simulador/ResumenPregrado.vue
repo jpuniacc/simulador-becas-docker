@@ -3,7 +3,7 @@
  * Resumen de pregrado (VOU v4, fase 2).
  * Reemplaza a `Results` SOLO en /simulador. /advance, /postgrados y /diplomados siguen con `Results`.
  */
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
@@ -19,6 +19,7 @@ import {
   CUOTAS_POR_DEFECTO,
   TEXTOS_RESUMEN,
   calcularResumen,
+  etiquetaBecaAplicada,
   pctContadoDesdeModosPago
 } from '@/utils/resumenPregrado'
 import type { FormData } from '@/types/simulador'
@@ -80,14 +81,7 @@ const resumen = computed(() =>
   })
 )
 
-const etiquetaBeca = computed(() => {
-  const b = becaPrincipal.value
-  if (!b) return ''
-  const valor = b.beca?.tipo_descuento === 'monto_fijo'
-    ? formatCurrency(b.monto_descuento || 0)
-    : `${b.descuento_aplicado}%`
-  return `${b.beca?.nombre || 'Beca UNIACC'} · ${valor} · ${TEXTOS_RESUMEN.sujetaARequisitos}`
-})
+const etiquetaBeca = computed(() => (becaPrincipal.value ? etiquetaBecaAplicada(becaPrincipal.value as any, formatCurrency) : ''))
 
 const mostrarReferencialEstado = computed(() => !!(fd.value.usaBecasEstado || fd.value.planeaUsarCAE))
 const arancelReferenciaCae = computed(() => carreraInfo.value?.arancel_referencia || null)
@@ -174,6 +168,58 @@ const openBecaInfoDialog = (beca: BecasInformativas) => {
 }
 
 const lista = (v: unknown): string[] => (Array.isArray(v) ? v : [v]).map(String)
+
+// ---- Carrusel de Becas Adicionales (solo móvil; en escritorio es una grilla) ----
+const pistaRef = ref<HTMLElement | null>(null)
+const indiceActivo = ref(0)
+let cuadro = 0
+
+const tarjetas = (): HTMLElement[] => Array.from(pistaRef.value?.children ?? []) as HTMLElement[]
+
+const actualizarIndiceActivo = () => {
+  const pista = pistaRef.value
+  if (!pista) return
+  const items = tarjetas()
+  if (!items.length) return
+  // Al final del recorrido la última tarjeta nunca llega al borde izquierdo: se marca igualmente como activa
+  if (pista.scrollWidth > pista.clientWidth && pista.scrollLeft >= pista.scrollWidth - pista.clientWidth - 2) {
+    indiceActivo.value = items.length - 1
+    return
+  }
+  let mejor = 0
+  let distMin = Infinity
+  items.forEach((el, i) => {
+    const d = Math.abs(el.offsetLeft - pista.scrollLeft)
+    if (d < distMin) { distMin = d; mejor = i }
+  })
+  indiceActivo.value = mejor
+}
+
+const alDesplazar = () => {
+  if (cuadro) return
+  cuadro = requestAnimationFrame(() => {
+    cuadro = 0
+    actualizarIndiceActivo()
+  })
+}
+
+const irATarjeta = (i: number) => {
+  const pista = pistaRef.value
+  const items = tarjetas()
+  if (!pista || !items.length) return
+  const destino = Math.min(Math.max(i, 0), items.length - 1)
+  const reducir = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  pista.scrollTo({ left: items[destino].offsetLeft, behavior: reducir ? 'auto' : 'smooth' })
+  indiceActivo.value = destino
+}
+
+const onTeclaPista = (e: KeyboardEvent) => {
+  if (e.key === 'ArrowRight') { e.preventDefault(); irATarjeta(indiceActivo.value + 1) }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); irATarjeta(indiceActivo.value - 1) }
+}
+
+onMounted(() => nextTick(actualizarIndiceActivo))
+onBeforeUnmount(() => { if (cuadro) cancelAnimationFrame(cuadro) })
 
 defineExpose({ simulate: handleSimulate })
 </script>
@@ -304,20 +350,52 @@ defineExpose({ simulate: handleSimulate })
       <section v-if="becasInformativas.length > 0" class="rp-card" data-testid="becas-adicionales">
         <h3 class="rp-h3"><Award class="rp-h3-icon" aria-hidden="true" /> Becas Adicionales</h3>
         <p class="rp-texto">Te invitamos a consultar por otras becas aplicables si ya eres parte de la familia UNIACC</p>
-        <div class="rp-grid">
-          <article v-for="beca in becasInformativas" :key="beca.id" class="rp-mini">
-            <h4 class="rp-mini-titulo">{{ beca.nombre }}</h4>
-            <p v-if="beca.descripcion" class="rp-mini-desc" data-testid="beca-desc">{{ beca.descripcion }}</p>
-            <Button
-              label="Ver más"
-              icon="pi pi-arrow-right"
-              iconPos="right"
-              outlined
-              severity="secondary"
-              class="rp-mini-btn"
-              @click="openBecaInfoDialog(beca)"
-            />
-          </article>
+        <div class="rp-carrusel">
+          <div
+            ref="pistaRef"
+            class="rp-grid rp-pista"
+            role="group"
+            aria-roledescription="carrusel"
+            aria-label="Becas adicionales"
+            tabindex="0"
+            data-testid="carrusel-pista"
+            @scroll.passive="alDesplazar"
+            @keydown="onTeclaPista"
+          >
+            <article
+              v-for="(beca, i) in becasInformativas"
+              :key="beca.id"
+              class="rp-mini"
+              role="group"
+              aria-roledescription="diapositiva"
+              :aria-label="`${i + 1} de ${becasInformativas.length}`"
+            >
+              <h4 class="rp-mini-titulo">{{ beca.nombre }}</h4>
+              <p v-if="beca.descripcion" class="rp-mini-desc" data-testid="beca-desc">{{ beca.descripcion }}</p>
+              <Button
+                label="Ver más"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                outlined
+                severity="secondary"
+                class="rp-mini-btn"
+                @click="openBecaInfoDialog(beca)"
+              />
+            </article>
+          </div>
+        </div>
+
+        <div v-if="becasInformativas.length > 1" class="rp-puntos" data-testid="carrusel-puntos">
+          <button
+            v-for="(beca, i) in becasInformativas"
+            :key="beca.id"
+            type="button"
+            class="rp-punto"
+            :class="{ 'rp-punto-on': i === indiceActivo }"
+            :aria-label="`Ir a la beca ${i + 1} de ${becasInformativas.length}: ${beca.nombre}`"
+            :aria-current="i === indiceActivo ? 'true' : undefined"
+            @click="irATarjeta(i)"
+          />
         </div>
       </section>
     </div>
@@ -588,17 +666,99 @@ defineExpose({ simulate: handleSimulate })
   list-style: disc;
 }
 
-.rp-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
+/* Becas Adicionales: carrusel horizontal en móvil/tablet chica, grilla de 2 columnas desde 768px */
+.rp-carrusel {
+  position: relative;
   margin-top: 0.75rem;
 }
 
-@media (min-width: 640px) {
+.rp-grid {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+
+.rp-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.rp-grid:focus-visible {
+  outline: 2px solid #1a3b66;
+  outline-offset: 2px;
+}
+
+.rp-grid > .rp-mini {
+  flex: 0 0 85%;
+  scroll-snap-align: start;
+}
+
+.rp-puntos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.125rem;
+  margin-top: 0.5rem;
+}
+
+/* Área táctil de 24px con un punto visible de 8px */
+.rp-punto {
+  position: relative;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rp-punto::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: #bfdbfe;
+  transition: background 0.15s, width 0.15s;
+}
+
+.rp-punto-on::after {
+  width: 1.25rem;
+  background: #1a3b66;
+}
+
+.rp-punto:focus-visible {
+  outline: 2px solid #1a3b66;
+  border-radius: 999px;
+}
+
+@media (min-width: 768px) {
   .rp-grid {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    scroll-snap-type: none;
   }
+
+  .rp-grid > .rp-mini {
+    flex: none;
+  }
+
+  .rp-puntos {
+    display: none;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-punto::after { transition: none; }
+
 }
 
 .rp-mini {
@@ -613,6 +773,11 @@ defineExpose({ simulate: handleSimulate })
 }
 
 .rp-mini-titulo {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 0.9375rem;
   font-weight: 700;
   color: #1a3b66;
@@ -659,69 +824,85 @@ defineExpose({ simulate: handleSimulate })
   padding-left: 1.25rem;
   list-style: disc;
 }
+</style>
 
+<!-- Modo oscuro: sin "scoped" para que la clase html.dark gane a los estilos claros -->
+<style>
 /* Modo oscuro */
-:global(html.dark) .resumen-pregrado {
+html.dark .resumen-pregrado {
   color: #e2e8f0;
 }
 
-:global(html.dark) .rp-card {
+html.dark .rp-card {
   background: #1e293b;
   border-color: #475569;
 }
 
-:global(html.dark) .rp-carrera-nombre,
-:global(html.dark) .rp-cuota-valor,
-:global(html.dark) .rp-h3,
-:global(html.dark) .rp-fila-total,
-:global(html.dark) .rp-mini-titulo,
-:global(html.dark) .rp-docs-titulo {
+html.dark .rp-carrera-nombre,
+html.dark .rp-cuota-valor,
+html.dark .rp-h3,
+html.dark .rp-fila-total,
+html.dark .rp-mini-titulo,
+html.dark .rp-docs-titulo {
   color: #bfdbfe;
 }
 
-:global(html.dark) .rp-carrera-detalle,
-:global(html.dark) .rp-ref,
-:global(html.dark) .rp-cuotas-label,
-:global(html.dark) .rp-total-linea,
-:global(html.dark) .rp-cuota-n,
-:global(html.dark) .rp-texto,
-:global(html.dark) .rp-mini-desc,
-:global(html.dark) .rp-contacto {
+html.dark .rp-carrera-detalle,
+html.dark .rp-ref,
+html.dark .rp-cuotas-label,
+html.dark .rp-total-linea,
+html.dark .rp-cuota-n,
+html.dark .rp-texto,
+html.dark .rp-mini-desc,
+html.dark .rp-contacto {
   color: #cbd5e1;
 }
 
-:global(html.dark) .rp-beca {
+html.dark .rp-beca {
   background: #14532d;
   color: #dcfce7;
 }
 
-:global(html.dark) .rp-sin-beca {
+html.dark .rp-sin-beca {
   background: #334155;
   color: #e2e8f0;
 }
 
-:global(html.dark) .rp-fila-desc dd {
+html.dark .rp-fila-desc dd {
   color: #86efac;
 }
 
-:global(html.dark) .rp-detalle,
-:global(html.dark) .rp-docs,
-:global(html.dark) .rp-fila-total {
+html.dark .rp-detalle,
+html.dark .rp-docs,
+html.dark .rp-fila-total {
   border-color: #475569;
 }
 
-:global(html.dark) .rp-disclaimer {
+html.dark .rp-disclaimer {
   background: #422006;
   border-color: #b45309;
   color: #fde68a;
 }
 
-:global(html.dark) .rp-mini {
+html.dark .rp-mini {
   background: #1e3a5f;
   border-color: #3b82f6;
 }
 
-:global(html.dark) .rp-contacto a {
+html.dark .rp-contacto a {
   color: #93c5fd;
+}
+
+html.dark .rp-punto::after {
+  background: #475569;
+}
+
+html.dark .rp-punto-on::after {
+  background: #bfdbfe;
+}
+
+html.dark .rp-grid:focus-visible,
+html.dark .rp-punto:focus-visible {
+  outline-color: #bfdbfe;
 }
 </style>

@@ -117,3 +117,29 @@ export const TEXTOS_RESUMEN = {
     { texto: '+56 22 640 6151', tel: '+56226406151' }
   ]
 } as const
+
+/** Textos del modal del paso 2 (VOU v4, fase 3). */
+export const TEXTOS_MODAL = {
+  notaRequisitos:
+    'Las becas ministeriales y el CAE tienen requisitos académicos y socioeconómicos amplios. ' +
+    'Su asignación depende de los procesos oficiales de preselección y selección, según la normativa vigente.',
+  ayudaPaes: 'Algunas becas exigen requisitos académicos.',
+  ayudaFinanciamiento: 'Becas ministeriales y/o Crédito con Aval del Estado (CAE).',
+  ayudaPuntaje: 'Puntaje entre 150 y 1000.',
+  ayudaRenta:
+    'Toma el total de ingresos de tu hogar y divídelo por la cantidad de personas que viven en él.'
+} as const
+
+/**
+ * Etiqueta de la beca aplicada («Nombre · 25% · Sujeta a requisitos»).
+ * La usan el resumen y el motor de becas del modal para que digan exactamente lo mismo.
+ */
+export function etiquetaBecaAplicada(
+  b: { beca?: { nombre?: string | null; tipo_descuento?: string | null } | null; monto_descuento?: number | null; descuento_aplicado?: number | null },
+  formatearMonto: (n: number) => string
+): string {
+  const valor = b.beca?.tipo_descuento === 'monto_fijo'
+    ? formatearMonto(b.monto_descuento || 0)
+    : `${b.descuento_aplicado}%`
+  return `${b.beca?.nombre || 'Beca UNIACC'} · ${valor} · ${TEXTOS_RESUMEN.sujetaARequisitos}`
+}
