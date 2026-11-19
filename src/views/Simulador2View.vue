@@ -9,7 +9,6 @@ import StepItem from 'primevue/stepitem';
 import Step from 'primevue/step';
 import StepPanel from 'primevue/steppanel';
 import Button from 'primevue/button';
-import Message from 'primevue/message';
 import PersonalAcademicData from '@/components/simulador/PersonalAcademicData.vue';
 import CareerFinancing from '@/components/simulador/CareerFinancing.vue';
 import Results from '@/components/simulador/Results.vue';
@@ -164,6 +163,34 @@ const formatMissingFieldsAsBullets = (missingFields: string[]): string => {
     return missingFields.map(field => `• ${field}`).join('\n')
 }
 
+// Paso 1 -> 2. El botón queda habilitado: si falta algo, se marcan los campos
+// con error y se muestra el listado de campos faltantes (antes el botón quedaba
+// gris sin explicar qué faltaba).
+const intentarAvanzarPaso1 = (activateCallback: (step: string) => void) => {
+    if (isStep1ButtonBlocked.value) return
+
+    if (personalDataRef.value && 'markAsSubmitted' in personalDataRef.value && typeof personalDataRef.value.markAsSubmitted === 'function') {
+        personalDataRef.value.markAsSubmitted()
+    }
+    // Esperar un tick para que se actualicen los errores antes de verificar validación
+    nextTick(() => {
+        if (isStep1Valid.value) {
+            activateCallback('2')
+        } else {
+            const missingFields = getMissingFieldsStep1()
+            toast.add({
+                severity: 'error',
+                summary: 'Campos requeridos',
+                detail: missingFields.length > 0
+                    ? formatMissingFieldsAsBullets(missingFields)
+                    : 'Revisa los campos marcados en rojo para continuar',
+                life: 3000
+            })
+            blockButton(1, 3000)
+        }
+    })
+}
+
 // Función helper para bloquear un botón por 3 segundos
 const blockButton = (step: 1 | 2, duration: number = 3000) => {
     if (step === 1) {
@@ -227,49 +254,21 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                         <span class="hidden md:inline">Resultados</span>
                     </Step>
                 </StepList>
-                <Message severity="info" :closable="true" size="small" class="mb-1">
-                    <template #icon>
-                        <i class="pi pi-shield"></i>
-                    </template>
-                    <span class="font-semibold"> Tus datos se usan sólo para esta simulación</span>
-                    <span class="text-gray-600">. Al continuar, aceptas su uso.</span>
-                </Message>
                 <StepPanels>
                     <StepPanel v-slot="{ activateCallback }" value="1">
                         <div class="stepper-panel flex flex-col">
-                            <PersonalAcademicData ref="personalDataRef" :form-data="formData"
+                            <PersonalAcademicData ref="personalDataRef" layout="grupos" :form-data="formData"
                                 @update:form-data="handleFormDataUpdate" @validation-change="handleValidationChange" />
                         </div>
                         <div class="flex pt-6 justify-end">
                             <div
                                 class="m-4 button-wrapper"
                                 :class="{ 'button-blocked': isStep1ButtonBlocked }"
-                                @mousedown="() => {
-                                    if (isStep1ButtonBlocked) return
-
-                                    if (personalDataRef && 'markAsSubmitted' in personalDataRef && typeof personalDataRef.markAsSubmitted === 'function') {
-                                        personalDataRef.markAsSubmitted()
-                                    }
-                                    // Esperar un tick para que se actualicen los errores antes de verificar validación
-                                    nextTick(() => {
-                                        if (isStep1Valid) {
-                                            activateCallback('2')
-                                        } else {
-                                            const missingFields = getMissingFieldsStep1()
-                                            if (missingFields.length > 0) {
-                                                toast.add({
-                                                    severity: 'error',
-                                                    summary: 'Campos requeridos',
-                                                    detail: formatMissingFieldsAsBullets(missingFields),
-                                                    life: 3000
-                                                })
-                                                blockButton(1, 3000)
-                                            }
-                                        }
-                                    })
-                                }"
+                                @mousedown="intentarAvanzarPaso1(activateCallback)"
                             >
-                                <Button label="Siguiente" icon="pi pi-arrow-right" :disabled="!isStep1Valid || isStep1ButtonBlocked" />
+                                <Button label="Siguiente" icon="pi pi-arrow-right" :disabled="isStep1ButtonBlocked"
+                                    @keydown.enter.prevent="intentarAvanzarPaso1(activateCallback)"
+                                    @keydown.space.prevent="intentarAvanzarPaso1(activateCallback)" />
                             </div>
                         </div>
                     </StepPanel>

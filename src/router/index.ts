@@ -13,18 +13,9 @@ const router = createRouter({
       component: HomeView,
       meta: {
         title: 'Inicio - Simulador de Becas UNIACC',
-        description: 'Descubre qué beneficios y becas puedes obtener en UNIACC con nuestro simulador gratuito. Calcula tu arancel con descuentos en solo minutos.',
+        description: 'Conoce a qué beneficios puedes acceder en UNIACC. Simulación referencial y sin compromiso, sujeta a validación de requisitos por Admisión.',
         keywords: ['simulador becas', 'UNIACC', 'becas universitarias', 'descuentos', 'arancel'],
         type: 'website'
-      }
-    },
-    {
-      path: '/elige-tu-camino',
-      name: 'elige-tu-camino',
-      component: () => import('../views/Segmentation.vue'),
-      meta: {
-        title: 'Elige tu camino - UNIACC',
-        description: 'Elige tu camino hacia la universidad en UNIACC'
       }
     },
     {

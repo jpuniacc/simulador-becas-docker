@@ -16,11 +16,17 @@ import type { Region, Comuna, Colegio } from '@/composables/useColegios'
 import { School, Shield } from 'lucide-vue-next'
 import { validateEmail, validateRUT } from '@/utils/validation'
 import { formatRUT, cleanRUT } from '@/utils/formatters'
+import { TEXTOS } from '@/constants/textosSimulador'
 
 // Props
 interface Props {
     formData?: Partial<FormData>
     modo?: 'primera_carrera' | 'especializacion' | 'postgrado'
+    /**
+     * 'plano' = formulario original (postgrados, sin cambios).
+     * 'grupos' = variante pregrado VOU v4 (3 grupos, placeholders, un solo aviso).
+     */
+    layout?: 'plano' | 'grupos'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,8 +41,14 @@ const props = withDefaults(defineProps<Props>(), {
         colegio: '',
         consentimiento_contacto: false
     }),
-    modo: 'primera_carrera'
+    modo: 'primera_carrera',
+    layout: 'plano'
 })
+
+// Textos del paso 1 (variante 'grupos')
+const P1 = TEXTOS.paso1
+// Año de egreso: máximo = año actual (antes estaba fijo en 2025)
+const anioMaxEgreso = new Date().getFullYear()
 
 // Emits
 const emit = defineEmits<{
@@ -465,8 +477,15 @@ const cambiarAPasaporte = () => {
 const volverARUT = () => {
     formData.value.tieneRUT = true
     formData.value.tipoIdentificacion = 'rut'
-    formData.value.identificacion = '' // Limpiar el campo al cambiar
-    rutError.value = null // Limpiar error de RUT
+    if (props.layout === 'grupos') {
+        // Variante pregrado: no se pierde lo escrito al desmarcar «extranjero».
+        // Si lo escrito no es un RUT válido, se avisa en el propio campo.
+        const valor = (formData.value.identificacion || '').trim()
+        rutError.value = valor !== '' && !validateRUT(valor) ? 'Por favor ingresa un RUT válido' : null
+    } else {
+        formData.value.identificacion = '' // Limpiar el campo al cambiar
+        rutError.value = null // Limpiar error de RUT
+    }
 }
 
 // Funciones para mostrar/ocultar el OverlayPanel de información de extranjero
@@ -762,6 +781,19 @@ watch(() => props.formData, (newData) => {
     }
 }, { deep: true })
 
+// Variante 'grupos': si es extranjero y reside fuera del país, el campo Colegio
+// se oculta; lo que hubiera quedado elegido no debe viajar ni afectar becas por región.
+watch(() => [formData.value.extranjero, formData.value.residencia_chilena], () => {
+    if (props.layout === 'grupos' && formData.value.extranjero === true && formData.value.residencia_chilena === false) {
+        formData.value.colegio = ''
+        formData.value.regionResidencia = ''
+        formData.value.comunaResidencia = ''
+        selectedRegion.value = null
+        selectedComuna.value = null
+        selectedColegio.value = null
+    }
+})
+
 // Watcher para limpiar campos de egresado si cambia el nivel educativo
 watch(() => formData.value.nivelEducativo, (newNivel) => {
     const nivelesCompletos = ['Educación media completa', 'Educación superior incompleta', 'Educación superior completa']
@@ -775,6 +807,185 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
 
 <template>
     <div class="step1-container">
+        <template v-if="props.layout === 'grupos'">
+            <div class="g-form" data-layout="grupos">
+                <div class="g-intro">
+                    <h2 class="g-title">{{ P1.titulo }}</h2>
+                    <p class="g-subtitle">{{ P1.subtitulo }}</p>
+                </div>
+                <form class="g-form-body" novalidate @submit.prevent>
+                    <!-- Grupo 1: Sobre ti -->
+                    <fieldset class="g-group" data-grupo="sobre-ti">
+                        <legend class="g-legend">{{ P1.grupoSobreTi }}</legend>
+                        <div class="g-row">
+                            <div class="g-field">
+                                <label for="nombre" class="g-label">Nombre *</label>
+                                <InputText id="nombre" v-model="formData.nombre" class="form-input"
+                                    :placeholder="P1.placeholders.nombre" autocomplete="given-name"
+                                    :invalid="(submitted || touched.nombre) && (!formData.nombre || formData.nombre.trim() === '')"
+                                    @blur="touched.nombre = true" />
+                                <Message v-if="(submitted || touched.nombre) && (!formData.nombre || formData.nombre.trim() === '')"
+                                    severity="error" variant="simple" size="small">Nombre es requerido</Message>
+                            </div>
+                            <div class="g-field">
+                                <label for="apellido" class="g-label">Apellido *</label>
+                                <InputText id="apellido" v-model="formData.apellido" class="form-input"
+                                    :placeholder="P1.placeholders.apellido" autocomplete="family-name"
+                                    :invalid="(submitted || touched.apellido) && (!formData.apellido || formData.apellido.trim() === '')"
+                                    @blur="touched.apellido = true" />
+                                <Message v-if="(submitted || touched.apellido) && (!formData.apellido || formData.apellido.trim() === '')"
+                                    severity="error" variant="simple" size="small">Apellido es requerido</Message>
+                            </div>
+                        </div>
+                        <div class="g-row">
+                            <div v-if="mostrarRUT" class="g-field">
+                                <label for="identificacion" class="g-label">RUT *</label>
+                                <InputText id="identificacion" v-model="formData.identificacion" type="text"
+                                    :placeholder="P1.placeholders.rut" class="form-input"
+                                    :invalid="(submitted || touched.identificacion) && (rutError !== null || (formData.identificacion && !validateRUT(formData.identificacion)) || !formData.identificacion)"
+                                    @input="handleRUTInput" @blur="touched.identificacion = true" />
+                                <Message v-if="(submitted || touched.identificacion) && (rutError || (formData.identificacion && !validateRUT(formData.identificacion)))"
+                                    severity="error" variant="simple" size="small">{{ rutError || 'RUT no es válido' }}</Message>
+                                <Message v-else-if="(submitted || touched.identificacion) && !formData.identificacion"
+                                    severity="error" variant="simple" size="small">RUT es requerido</Message>
+                            </div>
+                            <div v-else class="g-field">
+                                <label for="identificacion" class="g-label">Identificación *</label>
+                                <InputText id="identificacion" v-model="formData.identificacion" type="text"
+                                    :placeholder="P1.placeholders.identificacion" class="form-input"
+                                    :invalid="(submitted || touched.identificacion) && (!formData.identificacion || formData.identificacion.trim() === '')"
+                                    @blur="touched.identificacion = true" />
+                                <Message v-if="(submitted || touched.identificacion) && (!formData.identificacion || formData.identificacion.trim() === '')"
+                                    severity="error" variant="simple" size="small">Identificación es requerida</Message>
+                            </div>
+                            <div class="g-field">
+                                <label for="anio_nacimiento" class="g-label">Año de nacimiento *</label>
+                                <DatePicker input-id="anio_nacimiento" v-model="anioNacimientoValue" view="year" dateFormat="yy"
+                                    class="form-input w-full" :placeholder="P1.placeholders.anioNacimiento"
+                                    :invalid="(submitted || touched.anio_nacimiento) && formData.anio_nacimiento === null"
+                                    :minDate="minDate" :maxDate="maxDate" :yearRange="yearRange"
+                                    @blur="touched.anio_nacimiento = true" />
+                                <Message v-if="(submitted || touched.anio_nacimiento) && formData.anio_nacimiento === null"
+                                    severity="error" variant="simple" size="small">Año de nacimiento es requerido</Message>
+                            </div>
+                        </div>
+                        <div class="g-check">
+                            <Checkbox input-id="esExtranjero" v-model="esExtranjero" :binary="true" />
+                            <label for="esExtranjero" class="g-check-label">¿Eres extranjero?</label>
+                            <span class="g-hint">Tenemos beneficios asociados a país de origen</span>
+                        </div>
+                        <div v-if="esExtranjero" class="g-check">
+                            <Checkbox input-id="resideFueraPais" v-model="resideFueraPais" :binary="true" />
+                            <label for="resideFueraPais" class="g-check-label">¿Resides fuera del país?</label>
+                        </div>
+                    </fieldset>
+
+                    <!-- Grupo 2: ¿Cómo te contactamos? -->
+                    <fieldset class="g-group" data-grupo="contacto">
+                        <legend class="g-legend">{{ P1.grupoContacto }}</legend>
+                        <div class="g-field">
+                            <label for="email" class="g-label">Email *</label>
+                            <InputText id="email" v-model="formData.email" type="email" class="form-input"
+                                :placeholder="P1.placeholders.email" autocomplete="email"
+                                :invalid="(submitted || touched.email) && (emailError !== null || !formData.email || (formData.email && !validateEmail(formData.email)))"
+                                @blur="touched.email = true" />
+                            <Message v-if="(submitted || touched.email) && (emailError || (formData.email && !validateEmail(formData.email)))"
+                                severity="error" variant="simple" size="small">{{ emailError || 'Email no es válido' }}</Message>
+                            <Message v-else-if="(submitted || touched.email) && !formData.email"
+                                severity="error" variant="simple" size="small">Email es requerido</Message>
+                        </div>
+                        <div class="g-field">
+                            <label for="telefono" class="g-label">Teléfono *</label>
+                            <InputGroup class="form-input-group">
+                                <InputGroupAddon>+569</InputGroupAddon>
+                                <InputText id="telefono" v-model="formData.telefono" type="tel" class="form-input"
+                                    maxlength="8" inputmode="numeric" autocomplete="tel-national"
+                                    :placeholder="P1.placeholders.telefono"
+                                    :invalid="(submitted || touched.telefono) && (telefonoError !== null || !formData.telefono || (formData.telefono && formData.telefono.replace(/[^0-9]/g, '').length !== 8))"
+                                    @keydown="handlePhoneKeydown" @paste="handlePhonePaste" @input="handlePhoneInput"
+                                    @blur="touched.telefono = true" />
+                            </InputGroup>
+                            <Message v-if="(submitted || touched.telefono) && (telefonoError || !formData.telefono || (formData.telefono && formData.telefono.replace(/[^0-9]/g, '').length !== 8))"
+                                severity="error" variant="simple" size="small">{{ telefonoError || 'El teléfono debe tener 8 dígitos' }}</Message>
+                        </div>
+                    </fieldset>
+
+                    <!-- Grupo 3: Tus estudios -->
+                    <fieldset class="g-group" data-grupo="estudios">
+                        <legend class="g-legend">{{ P1.grupoEstudios }}</legend>
+                        <div class="g-field">
+                            <span id="nivelEducativo-label" class="g-label">Nivel educativo *</span>
+                            <p class="g-hint g-hint-block">Si corresponde, te solicitaremos datos relacionados a egreso de enseñanza media</p>
+                            <div class="g-radio-grid" role="radiogroup" aria-labelledby="nivelEducativo-label">
+                                <label v-for="opcion in opcionesNivelEducativo" :key="opcion.value"
+                                    :for="`nivelEducativo-${opcion.value}`" class="g-radio-card"
+                                    :class="{ 'g-radio-card-on': formData.nivelEducativo === opcion.value }">
+                                    <input :id="`nivelEducativo-${opcion.value}`" type="radio" name="nivelEducativo"
+                                        class="g-radio" :value="opcion.value"
+                                        :checked="formData.nivelEducativo === opcion.value"
+                                        @change="formData.nivelEducativo = opcion.value as FormData['nivelEducativo']; touched.nivelEducativo = true" />
+                                    <span>{{ opcion.label }}</span>
+                                </label>
+                            </div>
+                            <Message v-if="(submitted || touched.nivelEducativo) && !formData.nivelEducativo"
+                                severity="error" variant="simple" size="small">Nivel educativo es requerido</Message>
+                        </div>
+
+                        <div v-if="isEgresado" class="g-row">
+                            <div class="g-field">
+                                <label for="añoEgreso" class="g-label">Año de egreso (opcional)</label>
+                                <InputNumber input-id="añoEgreso" v-model="añoEgresoValue" :min="2000" :max="anioMaxEgreso"
+                                    :useGrouping="false" class="form-input" :placeholder="P1.placeholders.anioEgreso" />
+                            </div>
+                            <div v-if="!(esExtranjero && resideFueraPais)" class="g-field">
+                                <label for="ranking" class="g-label">Ranking de notas (opcional)</label>
+                                <InputNumber input-id="ranking" v-model="rankingValue" :min="0" :max="1000" :useGrouping="false"
+                                    class="form-input" :placeholder="P1.placeholders.ranking" />
+                            </div>
+                        </div>
+                        <div v-if="isEgresado && !(esExtranjero && resideFueraPais)" class="g-field g-field-half">
+                            <label for="nem" class="g-label">NEM (opcional)</label>
+                            <InputText id="nem" v-model="nemValue" class="form-input" :placeholder="P1.placeholders.nem"
+                                maxlength="3" @input="handleNEMInput" @keydown="handleNEMKeydown" />
+                        </div>
+
+                        <div v-if="!esExtranjero || !resideFueraPais" class="g-field">
+                            <span class="g-label">Colegio *</span>
+                            <div class="colegio-selection-container">
+                                <Button v-if="!formData.colegio" type="button" label="Seleccionar Colegio"
+                                    icon="pi pi-map-marker" @click="openSchoolModal" class="colegio-button" outlined />
+                                <div v-else class="colegio-selected">
+                                    <div class="colegio-info">
+                                        <School class="colegio-icon" />
+                                        <div class="colegio-details">
+                                            <div class="colegio-nombre">{{ formData.colegio }}</div>
+                                            <div class="colegio-location">
+                                                {{ formData.comunaResidencia }}{{ formData.regionResidencia ? `, ${formData.regionResidencia}` : '' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button type="button" label="Cambiar" icon="pi pi-pencil" @click="openSchoolModal"
+                                        class="colegio-change-button colegio-completed" severity="success" text />
+                                </div>
+                            </div>
+                            <Message v-if="(submitted || touched.colegio) && !mostrarPasaporte && (!formData.colegio || formData.colegio.trim() === '')"
+                                severity="error" variant="simple" size="small">Colegio es requerido</Message>
+                        </div>
+                    </fieldset>
+
+                    <!-- Un solo aviso de privacidad -->
+                    <div class="g-privacy" data-testid="aviso-privacidad">
+                        <Shield class="g-privacy-icon" aria-hidden="true" />
+                        <div>
+                            <p class="g-privacy-main">{{ P1.privacidadContacto }}</p>
+                            <p class="g-privacy-fine">{{ P1.privacidadFines }}</p>
+                            <p class="g-privacy-sim"><i class="pi pi-lock" aria-hidden="true"></i> {{ P1.privacidadSimulacion }}</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </template>
+        <template v-else>
         <div class="form-guide">
             <p class="guide-text">
                 Cuéntanos un poco sobre ti{{ props.modo !== 'especializacion' ? ' y tus estudios' : '' }}
@@ -1077,7 +1288,7 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
                      <!-- JPS: Agregar validación para que no se muestre si es extranjero y reside fuera del país -->
                     <div v-if="isEgresado" class="form-field">
                         <FloatLabel>
-                            <InputNumber id="añoEgreso" v-model="añoEgresoValue" :min="2000" :max="2025"
+                            <InputNumber id="añoEgreso" v-model="añoEgresoValue" :min="2000" :max="anioMaxEgreso"
                                 :useGrouping="false" class="form-input" />
                             <label for="añoEgreso">Año de Egreso (Opcional)</label>
                         </FloatLabel>
@@ -1168,6 +1379,7 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
                 </div>
             </div>
         </form>
+        </template>
 
         <!-- Modal de Selección de Colegio -->
         <SchoolSelectionModal v-model:isOpen="isSchoolModalOpen" :selected-region="selectedRegion"
@@ -1441,5 +1653,143 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
     :deep(.colegio-change-button) {
         @apply ml-0 w-full;
     }
+}
+
+/* ===== Variante pregrado 'grupos' (VOU v4) ===== */
+.g-form {
+    @apply w-full max-w-2xl mx-auto px-1 py-2;
+}
+
+.g-intro {
+    @apply mb-5;
+}
+
+.g-title {
+    @apply text-xl md:text-2xl font-bold text-gray-900;
+}
+
+.g-subtitle {
+    @apply mt-1 text-sm md:text-base text-gray-600;
+}
+
+.g-form-body {
+    @apply flex flex-col gap-6;
+}
+
+.g-group {
+    @apply flex flex-col gap-4 border-0 p-0 m-0 min-w-0;
+}
+
+.g-legend {
+    @apply mb-1 p-0 text-xs font-bold uppercase tracking-wider text-gray-500;
+}
+
+.g-row {
+    @apply grid grid-cols-2 gap-3;
+}
+
+.g-row > .g-field {
+    @apply min-w-0;
+}
+
+.g-field {
+    @apply flex flex-col gap-1 min-w-0;
+}
+
+.g-field-half {
+    @apply w-1/2 pr-1.5;
+}
+
+.g-label {
+    @apply text-sm font-medium text-gray-700;
+}
+
+.g-check {
+    @apply flex flex-wrap items-center gap-2;
+}
+
+.g-check-label {
+    @apply text-sm text-gray-700 cursor-pointer;
+}
+
+.g-hint {
+    @apply text-xs text-gray-500;
+}
+
+.g-hint-block {
+    @apply -mt-0.5 mb-1;
+}
+
+.g-radio-grid {
+    @apply grid grid-cols-2 gap-2;
+}
+
+.g-radio-card {
+    @apply flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-3 py-3 text-sm text-gray-700 cursor-pointer transition-colors;
+}
+
+.g-radio-card-on {
+    border-color: var(--p-primary-500);
+    background-color: var(--p-primary-50);
+    color: var(--p-primary-900);
+}
+
+.g-radio {
+    @apply h-4 w-4 flex-none;
+    accent-color: var(--p-primary-600, #0284c7);
+}
+
+.g-privacy {
+    @apply flex gap-3 rounded-lg border-l-4 p-4 text-sm;
+    border-color: var(--p-primary-500);
+    background-color: var(--p-primary-50);
+    color: #1e293b;
+}
+
+.g-privacy-icon {
+    @apply h-5 w-5 flex-none mt-0.5;
+    color: var(--p-primary-700);
+}
+
+.g-privacy-main {
+    @apply leading-relaxed;
+}
+
+.g-privacy-fine {
+    @apply mt-1 text-xs italic text-gray-600;
+}
+
+.g-privacy-sim {
+    @apply mt-2 text-xs text-gray-600;
+}
+
+:global(html.dark) .g-title,
+:global(html.dark) .g-label,
+:global(html.dark) .g-check-label {
+    color: #e2e8f0 !important;
+}
+
+:global(html.dark) .g-subtitle,
+:global(html.dark) .g-legend,
+:global(html.dark) .g-hint,
+:global(html.dark) .g-privacy-fine,
+:global(html.dark) .g-privacy-sim {
+    color: #94a3b8 !important;
+}
+
+:global(html.dark) .g-radio-card {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+:global(html.dark) .g-radio-card-on {
+    background-color: #1e3a5f;
+    border-color: #3b82f6;
+}
+
+:global(html.dark) .g-privacy {
+    background-color: #1e293b;
+    color: #e2e8f0;
 }
 </style>

@@ -41,7 +41,7 @@ export interface WebApplicationSchema {
   description: string
   applicationCategory: string
   operatingSystem: string
-  offers: {
+  offers?: {
     '@type': string
     price: string
     priceCurrency: string
@@ -121,14 +121,9 @@ export const generateWebApplicationSchema = (): WebApplicationSchema => {
     '@type': 'WebApplication',
     name: 'Simulador de Becas UNIACC',
     url: baseURL,
-    description: 'Simulador gratuito para calcular becas disponibles en UNIACC',
+    description: 'Simulador referencial para conocer a qué becas y beneficios puedes acceder en UNIACC',
     applicationCategory: 'EducationalApplication',
-    operatingSystem: 'Web',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'CLP'
-    }
+    operatingSystem: 'Web'
   }
 }
 

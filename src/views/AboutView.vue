@@ -266,8 +266,8 @@ const scrollToStats = () => {
             <h2 class="simulator-title">Simulador de Becas y Beneficios</h2>
             <p class="simulator-description">
               Nuestro simulador te ayuda a descubrir todas las becas, descuentos
-              y beneficios disponibles para tu carrera. Es completamente gratuito
-              y solo toma 5 minutos.
+              y beneficios disponibles para tu carrera. La simulación es referencial,
+              sin compromiso y solo toma 5 minutos.
             </p>
             <div class="simulator-features">
               <div class="feature-item">
@@ -284,7 +284,7 @@ const scrollToStats = () => {
               </div>
               <div class="feature-item">
                 <CheckCircle class="w-5 h-5 text-green-600" />
-                <span>100% gratuito y confidencial</span>
+                <span>Sin compromiso y confidencial</span>
               </div>
             </div>
             <div class="simulator-actions">

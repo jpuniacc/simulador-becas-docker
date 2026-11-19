@@ -1,352 +1,196 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Check } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, GraduationCap } from 'lucide-vue-next'
+import { TEXTOS } from '@/constants/textosSimulador'
 
 const router = useRouter()
-const selectedOption = ref<string | null>(null)
-const viewportHeight = ref<number>(window.innerHeight)
-const segmentationViewRef = ref<HTMLElement | null>(null)
+const T = TEXTOS.camino
 
-const updateViewportHeight = () => {
-  viewportHeight.value = window.innerHeight
-  if (segmentationViewRef.value) {
-    segmentationViewRef.value.style.height = `${viewportHeight.value}px`
-  }
+// Hoy solo Pregrado es seleccionable. Postgrado se muestra como «Próximamente»
+// (no clicable). Las rutas /advance, /postgrados y /diplomados siguen existiendo
+// pero ya no se enlazan desde esta pantalla.
+const irAPregrado = () => {
+  router.push('/simulador')
 }
 
-onMounted(() => {
-  updateViewportHeight()
-  window.addEventListener('resize', updateViewportHeight)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateViewportHeight)
-})
-
-interface SegmentOption {
-  id: string
-  title: string
-  subtitle: string
-  bullets: string[]
-  iconClass: string
-  colorClass: string
-  borderColorClass: string
-  bgColorClass: string
-}
-
-const options: SegmentOption[] = [
-  {
-    id: 'pregrado',
-    title: 'Pregrado',
-    subtitle: 'Primera formación profesional',
-    bullets: [
-      'Egresados de enseñanza media',
-      'Primera carrera universitaria'
-    ],
-    iconClass: 'pi pi-graduation-cap',
-    colorClass: 'text-white',
-    borderColorClass: '',
-    bgColorClass: 'bg-primary-saturated'
-  }
-]
-
-const selectOption = (optionId: string) => {
-  selectedOption.value = optionId
-
-  // Mapeo de opciones a rutas
-  const routeMap: Record<string, string> = {
-    'pregrado': '/simulador',
-    'pregrado-advance': '/advance',
-    'postgrado': '/postgrados',
-    'cursos-diplomados': '/diplomados'
-  }
-
-  const route = routeMap[optionId]
-  if (route) {
-    router.push(route)
-  }
-}
-
-const getCardClasses = (option: SegmentOption) => {
-  const base = 'segmentation-card'
-  const selected = selectedOption.value === option.id ? 'selected' : ''
-  return [base, selected, option.bgColorClass].filter(Boolean).join(' ')
+const volver = () => {
+  router.push('/')
 }
 </script>
 
 <template>
-  <div ref="segmentationViewRef" class="segmentation-view" :style="{ height: `${viewportHeight}px` }">
-    <div class="segmentation-cards">
-      <Card
-        v-for="option in options"
-        :key="option.id"
-        :class="getCardClasses(option)"
-        @click="selectOption(option.id)"
-      >
-        <CardHeader class="card-header">
-          <div class="card-icon-wrapper">
-            <i :class="[option.iconClass, option.colorClass, 'icon']"></i>
-          </div>
-          <CardTitle class="card-title">{{ option.title }}</CardTitle>
-          <CardDescription class="card-subtitle">
-            {{ option.subtitle }}
-          </CardDescription>
-        </CardHeader>
-        <CardContent class="card-content">
-          <ul class="card-bullets">
-            <li v-for="(bullet, index) in option.bullets" :key="index" class="bullet-item">
-              <Check :class="[option.colorClass, 'bullet-icon']" />
-              <span>{{ bullet }}</span>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
+  <div class="camino-view">
+    <header class="camino-header">
+      <img src="/logo_uniacc_simulador.png" alt="Universidad UNIACC" class="camino-logo" />
+      <p class="camino-header-title">Simulador de Becas</p>
+    </header>
+    <div class="camino-brandline" aria-hidden="true"></div>
+
+    <main class="camino-main">
+      <button type="button" class="camino-back" data-testid="volver" @click="volver">
+        <ArrowLeft class="w-4 h-4" aria-hidden="true" />
+        {{ T.volver }}
+      </button>
+
+      <h1 class="camino-title">{{ T.titulo }}</h1>
+      <p class="camino-subtitle">{{ T.subtitulo }}</p>
+
+      <div class="camino-cards">
+        <button
+          type="button"
+          class="camino-card camino-card-activa"
+          data-testid="card-pregrado"
+          @click="irAPregrado"
+        >
+          <span class="camino-icon camino-icon-activa"><GraduationCap class="w-6 h-6" aria-hidden="true" /></span>
+          <span class="camino-card-title">{{ T.pregrado.titulo }}</span>
+          <span class="camino-card-desc">{{ T.pregrado.descripcion }}</span>
+          <span class="camino-card-cta">
+            {{ T.pregrado.boton }}
+            <ArrowRight class="w-4 h-4" aria-hidden="true" />
+          </span>
+        </button>
+
+        <div
+          class="camino-card camino-card-inactiva"
+          data-testid="card-postgrado"
+          role="button"
+          aria-disabled="true"
+          tabindex="-1"
+        >
+          <span class="camino-chip">{{ T.postgrado.chip }}</span>
+          <span class="camino-icon camino-icon-inactiva"><GraduationCap class="w-6 h-6" aria-hidden="true" /></span>
+          <span class="camino-card-title">{{ T.postgrado.titulo }}</span>
+          <span class="camino-card-desc">{{ T.postgrado.descripcion }}</span>
+        </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap');
-
-.segmentation-view {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  padding: 0;
-  margin: 0;
-  position: relative;
+.camino-view {
+  @apply min-h-screen flex flex-col bg-gray-50 text-gray-900;
 }
 
-.segmentation-cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-  width: 100%;
-  height: 100%;
-  gap: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.camino-header {
+  @apply w-full bg-black text-white flex flex-col items-center gap-2 px-4 pt-6 pb-6;
 }
 
-.segmentation-card {
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  border: none;
-  border-radius: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 3rem 2.5rem;
-  position: relative;
-  overflow: visible;
-  justify-content: center;
-  align-items: center;
-  min-height: 0;
+.camino-logo {
+  height: 48px;
+  width: auto;
+  max-width: min(240px, 70vw);
+  object-fit: contain;
 }
 
-.segmentation-card:hover {
-  transform: scale(1.08);
-  z-index: 10;
+.camino-header-title {
+  @apply text-xl md:text-2xl font-semibold;
 }
 
-.segmentation-card.selected {
-  transform: scale(1.08);
-  z-index: 10;
+.camino-brandline {
+  height: 6px;
+  background: linear-gradient(to right,
+      var(--p-tertiary-500, #ff6b35) 0%,
+      var(--p-tertiary-500, #ff6b35) 33.33%,
+      var(--p-secondary-500, #ff007f) 33.33%,
+      var(--p-secondary-500, #ff007f) 66.66%,
+      var(--p-primary-500, #0ea5e9) 66.66%,
+      var(--p-primary-500, #0ea5e9) 100%);
 }
 
-/* Colores de fondo saturados */
-.bg-primary-saturated {
-  background-color: var(--p-primary-500);
+.camino-main {
+  @apply w-full max-w-3xl mx-auto px-5 py-6 md:py-10 flex flex-col;
 }
 
-.bg-secondary-saturated {
-  background-color: var(--p-secondary-500);
+.camino-back {
+  @apply self-start inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4;
 }
 
-.bg-tertiary-saturated {
-  background-color: var(--p-tertiary-500);
+.camino-title {
+  @apply text-2xl md:text-4xl font-bold;
 }
 
-.bg-black-saturated {
-  background-color: #000000;
+.camino-subtitle {
+  @apply mt-2 mb-6 text-gray-600;
 }
 
-.card-header {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding-bottom: 1rem;
-  flex-shrink: 0;
+.camino-cards {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
 }
 
-.card-icon-wrapper {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-  flex-shrink: 0;
+.camino-card {
+  @apply relative flex flex-col items-start gap-1 rounded-xl border p-5 text-left;
+  min-height: 11rem;
 }
 
-.segmentation-card:hover .card-icon-wrapper {
-  transform: scale(1.1);
+.camino-card-activa {
+  @apply bg-white border-gray-200 shadow-sm transition cursor-pointer hover:shadow-md hover:border-sky-400;
 }
 
-.icon {
-  font-size: 48px;
-  color: #ffffff;
+.camino-card-inactiva {
+  @apply bg-gray-100 border-dashed border-gray-300 text-gray-400 cursor-not-allowed select-none;
 }
 
-.card-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: #ffffff;
-  line-height: 1.2;
-  flex-shrink: 0;
+.camino-icon {
+  @apply mb-2 flex h-11 w-11 items-center justify-center rounded-lg text-white;
 }
 
-.card-subtitle {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #ffffff;
-  opacity: 0.95;
-  margin-bottom: 1rem;
-  flex-shrink: 0;
+.camino-icon-activa {
+  background: #4f94cd;
 }
 
-.card-content {
-  padding-top: 1rem;
-  padding-bottom: 1.5rem;
-  flex-shrink: 0;
-  visibility: visible;
-  opacity: 1;
+.camino-icon-inactiva {
+  @apply bg-gray-300;
 }
 
-.card-bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: opacity 0.3s ease, max-height 0.3s ease;
+.camino-card-title {
+  @apply text-lg font-semibold;
 }
 
-.segmentation-card:hover .card-bullets {
-  opacity: 1;
-  max-height: 200px;
+.camino-card-desc {
+  @apply text-sm text-gray-600;
 }
 
-.bullet-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #ffffff;
-  line-height: 1.5;
-  width: 100%;
+.camino-card-inactiva .camino-card-desc {
+  @apply text-gray-400;
 }
 
-.bullet-item span {
-  flex: 1;
+.camino-card-cta {
+  @apply mt-auto inline-flex items-center gap-1 pt-3 text-sm font-semibold text-sky-700;
 }
 
-.bullet-icon {
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
-  flex-shrink: 0;
-  color: #ffffff;
+.camino-chip {
+  @apply absolute right-3 top-3 rounded-full bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white;
 }
 
-.text-white {
-  color: #ffffff;
+:global(html.dark) .camino-view {
+  background: #0f172a;
+  color: #f8fafc;
 }
 
-/* Asegurar que los componentes Card sean visibles */
-:deep(.card-content) {
-  display: block !important;
+:global(html.dark) .camino-subtitle,
+:global(html.dark) .camino-back,
+:global(html.dark) .camino-card-desc {
+  color: #cbd5e1;
 }
 
-:deep(.card-header) {
-  display: block !important;
+:global(html.dark) .camino-card-activa {
+  background: #1e293b;
+  border-color: #334155;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .segmentation-cards {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-  }
+:global(html.dark) .camino-card-inactiva {
+  background: #172033;
+  border-color: #334155;
+}
 
-  .segmentation-card {
-    padding: 1.5rem 1rem;
-  }
+:global(html.dark) .camino-card-inactiva .camino-card-desc,
+:global(html.dark) .camino-card-inactiva .camino-card-title {
+  color: #64748b;
+}
 
-  .card-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .card-subtitle {
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .card-icon-wrapper {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 1rem;
-  }
-
-  .icon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .bullet-item {
-    font-size: 0.9rem;
-  }
-
-  .bullet-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .card-icon-wrapper {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 1.5rem;
-  }
-
-  .icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .segmentation-card:hover {
-    transform: scale(1.03);
-  }
-
-  .segmentation-card.selected {
-    transform: scale(1.03);
-  }
+:global(html.dark) .camino-card-cta {
+  color: #7dd3fc;
 }
 </style>
