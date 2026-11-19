@@ -453,7 +453,7 @@ export const useSimuladorStore = defineStore('simulador', () => {
   }
 
   // Simulación
-  const simulate = async (): Promise<SimulationResults> => {
+  const simulate = async (opciones?: { arancelPorId?: boolean }): Promise<SimulationResults> => {
 
 
     if (!canSimulate.value) {
@@ -488,7 +488,13 @@ export const useSimuladorStore = defineStore('simulador', () => {
       }
 
       // Calcular becas elegibles
-      calculoBecas.value = becasStore.calcularBecas(formData.value)
+      // Arancel por id de carrera (corrige carreras con el mismo nombre y distinta modalidad,
+      // p. ej. Psicología Diurno vs Vespertino). Solo lo piden las pantallas de pregrado;
+      // el resto de los flujos conserva la búsqueda por nombre.
+      const arancelPorId = opciones?.arancelPorId && formData.value.carreraId
+        ? costosCarrera.value?.arancel || undefined
+        : undefined
+      calculoBecas.value = becasStore.calcularBecas(formData.value, arancelPorId)
 
       // Calcular becas del estado elegibles
       // becasStore.calcularBecasElegiblesEstado(formData.value) // No se calcula becas del estado en la simulación

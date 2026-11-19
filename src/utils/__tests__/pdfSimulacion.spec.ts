@@ -54,3 +54,51 @@ describe('pdfSimulacion', () => {
     expect(json).toContain('RUT')
   })
 })
+
+describe('pdfSimulacion · modoReferencial (pregrado VOU v4)', () => {
+  const payload = {
+    modoReferencial: true,
+    nombre: 'Juan', apellido: 'Silva', identificacion: '12345678K', tipoIdentificacion: 'rut' as const,
+    email: 'juan@test.com', carreraNombre: 'Psicología', nivelAcademico: 'Pregrado',
+    modalidadPrograma: 'Diurno', duracionPrograma: '10 semestres',
+    arancelBase: 4190000, matricula: 250000,
+    becasInternas: [{ nombre: 'Beca Mérito Académico PAES', descuentoAplicado: 25, montoDescuento: 1047500 }],
+    usaBecasEstado: true, planeaUsarCAE: true, arancelReferenciaCae: 3315987, anioArancelReferencia: 2026,
+    beneficioEstimado: 1047500, arancelFinalConDescuentos: 3142500, matriculaFinalConDescuentos: 250000,
+    totalPagar: 3392500, numeroCuotas: 10, valorMensual: 339250
+  }
+
+  it('muestra montos, cuotas y disclaimers de la propuesta, sin «hasta X%»', () => {
+    const json = JSON.stringify(buildSimulacionPdfDefinition(payload))
+    expect(json).toContain('Simulación referencial · sujeta a validación')
+    expect(json).toContain('Sujeta a requisitos')
+    expect(json).toContain('Valor cuota estimado')
+    expect(json).toContain('Total estimado')
+    expect(json).toContain('preselección y selección')
+    expect(json).toContain('admision@uniacc.cl')
+    expect(json).not.toMatch(/hasta un \d+%/)
+    expect(json).not.toContain('Podrías estudiar')
+  })
+
+  it('el CAE aparece solo como referencia y no se resta ni se suma', () => {
+    const json = JSON.stringify(buildSimulacionPdfDefinition(payload))
+    expect(json).toContain('Financiamiento del Estado · Referencial')
+    expect(json).toContain('no se suma al total estimado')
+    expect(json).not.toContain('Monto máximo financiable con CAE')
+    expect(json).not.toContain('Total Final a Pagar en Plan de')
+  })
+
+  it('sin beca usa el texto neutro', () => {
+    const json = JSON.stringify(buildSimulacionPdfDefinition({ ...payload, becasInternas: [], beneficioEstimado: 0 }))
+    expect(json).toContain('Con tus datos no identificamos una beca UNIACC; Admisión puede revisar tu caso')
+  })
+
+  it('con 1 cuota indica contado y refleja el descuento por contado', () => {
+    const json = JSON.stringify(buildSimulacionPdfDefinition({
+      ...payload, numeroCuotas: 1, valorMensual: 3235375, totalPagar: 3235375,
+      descuentoModoPagoArancel: 157125, descuentoModoPagoPct: 5
+    }))
+    expect(json).toContain('en 1 pago (contado)')
+    expect(json).toContain('Descuento por pago al contado')
+  })
+})

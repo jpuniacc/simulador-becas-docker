@@ -3,6 +3,7 @@ import pdfFonts from 'pdfmake/build/vfs_fonts'
 import { UNIACC_LOGO_DATA_URL } from '@/assets/universidadUniaccLogoBase64'
 import { formatCurrency, formatRUT } from '@/utils/formatters'
 import { ANIO_POSTULACION } from '@/utils/config'
+import { TEXTOS_RESUMEN } from '@/utils/resumenPregrado'
 
 type PdfNode = Record<string, unknown> | string
 type PdfContent = PdfNode | PdfNode[]
@@ -50,6 +51,11 @@ export interface SimulacionPdfPayload {
   numeroCuotas?: number | null
   valorMensual?: number | null
   medioPagoLabel?: string | null
+  /** Variante pregrado VOU v4: el CAE/becas ministeriales son solo referenciales y NO entran en ningún total. */
+  modoReferencial?: boolean
+  arancelReferenciaCae?: number | null
+  /** Suma de descuentos aplicados (beca UNIACC + pago). Solo en modoReferencial. */
+  beneficioEstimado?: number | null
   fecha?: Date
 }
 
@@ -222,6 +228,7 @@ function summaryMiniCard(title: string, subtitle: string, value: string, colors:
 }
 
 export function buildSimulacionPdfDefinition(payload: SimulacionPdfPayload): Record<string, unknown> {
+  if (payload.modoReferencial) return buildSimulacionPdfReferencial(payload)
   const fecha = payload.fecha ?? new Date()
   const fechaLabel = fecha.toLocaleDateString('es-CL', {
     year: 'numeric',
@@ -659,6 +666,10 @@ export function buildSimulacionPdfDefinition(payload: SimulacionPdfPayload): Rec
     }
   }
 
+  return envolverPdf(content)
+}
+
+function envolverPdf(content: PdfContent[]): Record<string, unknown> {
   return {
     pageSize: 'A4',
     pageMargins: [36, 36, 36, 40],
@@ -737,6 +748,242 @@ export function buildSimulacionPdfDefinition(payload: SimulacionPdfPayload): Rec
     }),
     content
   }
+}
+
+/**
+ * PDF del resumen de pregrado (VOU v4). Los montos son los mismos de la pantalla:
+ * el CAE y las becas ministeriales aparecen solo como información referencial y no suman ni restan.
+ */
+function buildSimulacionPdfReferencial(payload: SimulacionPdfPayload): Record<string, unknown> {
+  const fecha = payload.fecha ?? new Date()
+  const fechaLabel = fecha.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
+  const idLabel = payload.tipoIdentificacion === 'pasaporte' ? 'Pasaporte' : 'RUT'
+  const cuotas = Math.max(1, payload.numeroCuotas || 1)
+  const esContado = cuotas === 1
+  const total = payload.totalPagar ?? 0
+  const valorCuota = payload.valorMensual ?? Math.round(total / cuotas)
+  const beneficio = payload.beneficioEstimado ?? 0
+  const beca = payload.becasInternas?.[0]
+  const descuentoBeca = beca?.montoDescuento ?? 0
+  const descuentoContado = payload.descuentoModoPagoArancel ?? 0
+  const descuentoAnticipadoArancel = payload.descuentoPagoAnticipadoArancel ?? 0
+  const descuentoAnticipadoMatricula = payload.descuentoPagoAnticipadoMatricula ?? 0
+
+  const filasDetalle: unknown[][] = [
+    detailHeader(),
+    detailRow('Arancel referencial', '-', '-', money(payload.arancelBase))
+  ]
+  if (beca) {
+    filasDetalle.push(detailRow(
+      beca.nombre || 'Beca UNIACC',
+      'Beneficio UNIACC',
+      beca.tipoDescuento === 'monto_fijo' ? '—' : `${beca.descuentoAplicado ?? 0}%`,
+      `-${money(descuentoBeca)}`,
+      { color: GREEN_DARK }
+    ))
+  }
+  if (descuentoContado > 0) {
+    filasDetalle.push(detailRow(
+      'Descuento por pago al contado',
+      'Contado',
+      payload.descuentoModoPagoPct ? `${payload.descuentoModoPagoPct}%` : '—',
+      `-${money(descuentoContado)}`,
+      { color: GREEN_DARK }
+    ))
+  }
+  if (descuentoAnticipadoArancel > 0) {
+    filasDetalle.push(detailRow('Descuento por pago anticipado (arancel)', 'Anticipado', '—', `-${money(descuentoAnticipadoArancel)}`, { color: GREEN_DARK }))
+  }
+  filasDetalle.push(detailRow('Matrícula', '-', '-', money(payload.matricula)))
+  if (descuentoAnticipadoMatricula > 0) {
+    filasDetalle.push(detailRow('Descuento por pago anticipado (matrícula)', 'Anticipado', '—', `-${money(descuentoAnticipadoMatricula)}`, { color: GREEN_DARK }))
+  }
+  filasDetalle.push(detailRow('Total estimado', '', '', money(total), { bold: true }))
+
+  const content: PdfContent[] = [
+    {
+      columns: [
+        { image: 'uniaccLogo', width: 52, margin: [0, 0, 12, 0] },
+        {
+          width: '*',
+          stack: [
+            { text: 'Simulador de Becas UNIACC', style: 'header', margin: [0, 4, 0, 2] },
+            { text: `Simulación generada el ${fechaLabel}`, style: 'subheader' }
+          ]
+        }
+      ],
+      margin: [0, 0, 0, 14]
+    },
+
+    card('Información de la Carrera', [
+      { text: payload.carreraNombre || '—', style: 'careerName', margin: [0, 0, 0, 8] },
+      {
+        columns: [
+          tag(payload.nivelAcademico || '—'),
+          tag(payload.modalidadPrograma || '—'),
+          tag(payload.duracionPrograma || '—'),
+          { text: '', width: '*' }
+        ]
+      }
+    ]),
+
+    card('Datos del alumno', [
+      {
+        columns: [
+          {
+            width: '50%',
+            stack: [
+              { text: 'Nombre', style: 'fieldLabel' },
+              { text: `${payload.nombre || '—'} ${payload.apellido || ''}`.trim(), style: 'fieldValue' }
+            ]
+          },
+          {
+            width: '50%',
+            stack: [
+              { text: idLabel, style: 'fieldLabel' },
+              { text: formatIdentificacion(payload.identificacion, payload.tipoIdentificacion), style: 'fieldValue' }
+            ]
+          }
+        ],
+        margin: [0, 0, 0, 8]
+      },
+      {
+        stack: [
+          { text: 'Email', style: 'fieldLabel' },
+          { text: payload.email || '—', style: 'fieldValue' }
+        ]
+      }
+    ]),
+
+    // Montos primero
+    {
+      table: {
+        widths: ['*'],
+        body: [[{
+          stack: [
+            {
+              text: beca
+                ? `${beca.nombre || 'Beca UNIACC'} · ${beca.tipoDescuento === 'monto_fijo' ? money(descuentoBeca) : `${beca.descuentoAplicado ?? 0}%`} · ${TEXTOS_RESUMEN.sujetaARequisitos}`
+                : TEXTOS_RESUMEN.sinBeca,
+              fontSize: 9,
+              bold: !!beca,
+              color: beca ? GREEN_DARK : '#334155',
+              margin: [0, 0, 0, 4]
+            },
+            { text: TEXTOS_RESUMEN.referencial, fontSize: 8, color: MUTED, margin: [0, 0, 0, 6] },
+            {
+              columns: [
+                { stack: [{ text: 'Arancel referencial', fontSize: 8, color: MUTED }, { text: money(payload.arancelBase), bold: true, fontSize: 12 }] },
+                { stack: [{ text: 'Beneficio estimado', fontSize: 8, color: MUTED }, { text: money(beneficio), bold: true, fontSize: 12, color: GREEN_DARK }] },
+                {
+                  stack: [
+                    { text: 'Valor cuota estimado', fontSize: 8, color: MUTED },
+                    { text: money(valorCuota), bold: true, fontSize: 14, color: BRAND },
+                    { text: esContado ? 'en 1 pago (contado)' : `× ${cuotas} cuotas`, fontSize: 8, color: MUTED }
+                  ]
+                }
+              ]
+            }
+          ],
+          fillColor: DISCOUNT_BG
+        }]]
+      },
+      layout: cardLayout({ fill: DISCOUNT_BG, border: DISCOUNT_BG }),
+      margin: [0, 0, 0, 10]
+    },
+
+    card('Detalle de la simulación', [
+      {
+        table: { headerRows: 1, widths: ['*', 80, 50, 80], body: filasDetalle },
+        layout: {
+          fillColor: (rowIndex: number) => (rowIndex === 0 ? BRAND : null),
+          hLineWidth: () => 0.4,
+          vLineWidth: () => 0.4,
+          hLineColor: () => '#CBD5E1',
+          vLineColor: () => '#CBD5E1',
+          paddingLeft: () => 6,
+          paddingRight: () => 6,
+          paddingTop: () => 5,
+          paddingBottom: () => 5
+        }
+      },
+      { text: `Cuotas elegidas: ${cuotas}${esContado ? ' (contado)' : ''}. Valor cuota estimado: ${money(valorCuota)}.`, style: 'note', margin: [0, 6, 0, 0] }
+    ])
+  ]
+
+  if (payload.usaBecasEstado || payload.planeaUsarCAE) {
+    const items: PdfContent[] = [
+      { text: 'Referencial · no se suma al total estimado. Su asignación depende de los procesos oficiales de preselección y selección y de la normativa vigente.', style: 'note', margin: [0, 0, 0, 6] }
+    ]
+    if (payload.usaBecasEstado) {
+      items.push({ text: 'Becas Ministeriales', style: 'subsectionTitle', margin: [0, 2, 0, 3] })
+      items.push({
+        text: 'Las becas se asignan de acuerdo con la información entregada en la postulación al FUAS, donde el Estado otorga el beneficio en función de requisitos académicos y socioeconómicos. En general, se solicita un puntaje igual o superior a 510 puntos en el promedio de las pruebas obligatorias (Competencia Lectora y Competencia Matemática) en las PAES del año de admisión a la carrera. Más información en portal.beneficiosestudiantiles.cl.',
+        style: 'note',
+        margin: [0, 0, 0, 6]
+      })
+    }
+    if (payload.planeaUsarCAE) {
+      items.push({ text: 'CAE (Crédito con Aval del Estado)', style: 'subsectionTitle', margin: [0, 2, 0, 3] })
+      items.push({
+        text: 'Se solicita un puntaje igual o superior a 485 puntos en el promedio de las pruebas obligatorias (Competencia Lectora y Competencia Matemática 1), considerando el mejor puntaje obtenido en los instrumentos de evaluación vigentes para el Proceso de Admisión 2026. Requisitos en portal.ingresa.cl.',
+        style: 'note',
+        margin: [0, 0, 0, 3]
+      })
+      if (payload.arancelReferenciaCae) {
+        items.push({
+          text: `Arancel de referencia CAE${payload.anioArancelReferencia ? ` ${payload.anioArancelReferencia}` : ''}: ${money(payload.arancelReferenciaCae)} (solo informativo).`,
+          style: 'note'
+        })
+      }
+    }
+    content.push(card('Financiamiento del Estado · Referencial', items))
+  }
+
+  content.push({
+    table: {
+      widths: ['*'],
+      body: [[{
+        stack: [
+          {
+            text: [
+              { text: `${TEXTOS_RESUMEN.disclaimerTitulo} `, bold: true, color: '#001122' },
+              { text: `${TEXTOS_RESUMEN.disclaimerCuerpo} `, color: BRAND },
+              { text: TEXTOS_RESUMEN.vigencia, color: BRAND }
+            ],
+            fontSize: 9,
+            lineHeight: 1.3
+          }
+        ],
+        fillColor: DISCLAIMER_BG
+      }]]
+    },
+    layout: {
+      hLineWidth: () => 0,
+      vLineWidth: (i: number) => (i === 0 ? 3 : 0),
+      vLineColor: () => BRAND,
+      fillColor: () => DISCLAIMER_BG,
+      paddingLeft: () => 12,
+      paddingRight: () => 12,
+      paddingTop: () => 10,
+      paddingBottom: () => 10
+    },
+    margin: [0, 0, 0, 10]
+  })
+
+  content.push({
+    text: [
+      { text: '¿Quieres revisar tu caso? Escríbenos a ' },
+      { text: TEXTOS_RESUMEN.email, bold: true, color: BRAND },
+      { text: ' o llámanos al ' },
+      { text: TEXTOS_RESUMEN.telefonos.map((t) => t.texto).join(' o al '), bold: true }
+    ],
+    fontSize: 9,
+    lineHeight: 1.35,
+    margin: [0, 0, 0, 6]
+  })
+
+  return envolverPdf(content)
 }
 
 export function downloadSimulacionPdf(

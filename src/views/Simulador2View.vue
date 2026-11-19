@@ -11,7 +11,7 @@ import StepPanel from 'primevue/steppanel';
 import Button from 'primevue/button';
 import PersonalAcademicData from '@/components/simulador/PersonalAcademicData.vue';
 import CareerFinancing from '@/components/simulador/CareerFinancing.vue';
-import Results from '@/components/simulador/Results.vue';
+import ResumenPregrado from '@/components/simulador/ResumenPregrado.vue';
 import type { FormData } from '@/types/simulador';
 
 // Estado del formulario
@@ -80,7 +80,7 @@ watch(personalDataRef, (ref) => {
 const careerFinancingRef = ref<InstanceType<typeof CareerFinancing> | null>(null);
 
 // Referencia al componente de resultados
-const resultsRef = ref<InstanceType<typeof Results> | null>(null);
+const resultsRef = ref<InstanceType<typeof ResumenPregrado> | null>(null);
 
 // Toast de PrimeVue
 const toast = useToast();
@@ -332,7 +332,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                     </StepPanel>
                     <StepPanel v-slot="{ activateCallback }" value="3">
                         <div class="flex flex-col">
-                            <Results ref="resultsRef" :form-data="formData" segmentacion="pregrado" />
+                            <ResumenPregrado ref="resultsRef" :form-data="formData" segmentacion="pregrado" />
                         </div>
                         <div class="pt-6">
                             <Button label="Atras" class="m-4" severity="secondary" icon="pi pi-arrow-left"
