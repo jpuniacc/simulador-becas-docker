@@ -5,10 +5,11 @@
  * Mantiene el mismo contrato con Simulador2View: update:form-data, validation-change,
  * isFormValid, markAsSubmitted y getMissingFields.
  */
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import Button from 'primevue/button'
-import { Search, GraduationCap, Pencil } from 'lucide-vue-next'
+import { GraduationCap, Pencil } from 'lucide-vue-next'
 import ModalSimulacionCarrera from './ModalSimulacionCarrera.vue'
+import CarreraAutocompletar from './CarreraAutocompletar.vue'
 import { useCarreras } from '@/composables/useCarreras'
 import { useDeciles } from '@/composables/useDeciles'
 import {
@@ -95,6 +96,14 @@ const abrir = (paso: 1 | 2 = 1, consultaTexto = '') => {
 
 const buscar = () => abrir(1, consulta.value.trim())
 
+/** Elegir una sugerencia: queda la carrera y el modal sigue directo en Financiamiento (la jornada ya viene en la sugerencia). */
+const alElegirEnBuscador = async (c: { id: number; nombre_programa: string }) => {
+  emit('update:form-data', { carrera: c.nombre_programa, carreraId: c.id, tipoPrograma: 'Regular' })
+  consulta.value = ''
+  await nextTick()
+  abrir(2)
+}
+
 const alConfirmar = (datos: Partial<FormData>) => emit('update:form-data', datos)
 
 // Si cambia el filtro de extranjero y la carrera elegida ya no corresponde, se limpia
@@ -129,22 +138,21 @@ defineExpose({ isFormValid, markAsSubmitted, getMissingFields })
     <section v-if="!tieneCarrera" class="pc-buscador" aria-labelledby="pc-cta">
       <h2 id="pc-cta" class="pc-cta">¿Qué carrera quieres simular?</h2>
       <form class="pc-form" role="search" @submit.prevent="buscar">
-        <div class="pc-campo" :class="{ 'pc-campo-error': !!errores.carrera }">
-          <Search class="pc-campo-icono" aria-hidden="true" />
-          <input
-            v-model="consulta"
-            type="search"
-            class="pc-input"
-            placeholder="Busca tu carrera…"
-            autocomplete="off"
-            enterkeyhint="search"
-            aria-label="Busca tu carrera"
-            :aria-invalid="!!errores.carrera"
-            aria-describedby="pc-error"
-            data-testid="buscador-input"
-          />
-          <Button type="submit" label="Buscar" class="pc-buscar" data-testid="buscador-boton" />
-        </div>
+        <CarreraAutocompletar
+          v-model="consulta"
+          input-id="pc-busqueda"
+          :carreras="carreras"
+          :carrera-id="formData?.carreraId || 0"
+          :solo-online="soloOnline"
+          :cargando="carrerasLoading"
+          :error="errores.carrera"
+          describedby="pc-error"
+          @seleccionar="alElegirEnBuscador"
+        >
+          <template #accion>
+            <Button type="submit" label="Buscar" class="pc-buscar" data-testid="buscador-boton" />
+          </template>
+        </CarreraAutocompletar>
       </form>
       <p v-if="errores.carrera" id="pc-error" class="pc-error" role="alert" data-testid="error-carrera-paso">
         {{ MENSAJES_PASO2.carrera }}
@@ -213,11 +221,6 @@ defineExpose({ isFormValid, markAsSubmitted, getMissingFields })
 .pc { width: 100%; max-width: 40rem; margin: 0 auto; padding: 0.5rem 1rem; }
 .pc-buscador { border-radius: 0.75rem; background: #f1f5f9; padding: 1rem; }
 .pc-cta { font-size: 1.125rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; }
-.pc-campo { display: flex; align-items: center; gap: 0.5rem; border: 1px solid #94a3b8; border-radius: 0.5rem; background: #fff; padding: 0.25rem 0.25rem 0.25rem 0.75rem; }
-.pc-campo:focus-within { border-color: #1a3b66; box-shadow: 0 0 0 2px rgba(26, 59, 102, 0.25); }
-.pc-campo-error { border-color: #dc2626; }
-.pc-campo-icono { width: 1.125rem; height: 1.125rem; color: #64748b; flex: none; }
-.pc-input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; padding: 0.625rem 0; font-size: 1rem; color: #0f172a; }
 .pc-buscar { flex: none; min-height: 2.5rem; }
 .pc-error { margin-top: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #b91c1c; }
 .pc-card { border: 1px solid #cbd5e1; border-radius: 0.75rem; background: #fff; padding: 1rem; }
@@ -243,9 +246,7 @@ defineExpose({ isFormValid, markAsSubmitted, getMissingFields })
 <style>
 html.dark .pc-buscador { background: #1e293b; }
 html.dark .pc-cta, html.dark .pc-sub, html.dark .pc-fila dd { color: #f1f5f9; }
-html.dark .pc-campo, html.dark .pc-card { background: #0f172a; border-color: #475569; }
-html.dark .pc-input { color: #f1f5f9; }
-html.dark .pc-card-nombre, html.dark .pc-card-icono { color: #bfdbfe; }
+html.dark html.dark html.dark .pc-card-nombre, html.dark .pc-card-icono { color: #bfdbfe; }
 html.dark .pc-etiqueta, html.dark .pc-card-detalle, html.dark .pc-fila dt, html.dark .pc-noaplica { color: #cbd5e1; }
 html.dark .pc-fila { border-color: #334155; }
 html.dark .pc-error { color: #fca5a5; }

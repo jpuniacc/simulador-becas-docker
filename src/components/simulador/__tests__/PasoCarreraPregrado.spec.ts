@@ -86,7 +86,14 @@ const abrir = async (w: VueWrapper) => {
 const titulo = (w: VueWrapper) => w.get('[data-testid="modal-titulo"]').text()
 const siguiente = async (w: VueWrapper) => { await w.get('[data-testid="modal-siguiente"]').trigger('click'); await flushPromises() }
 const pulsarVer = async (w: VueWrapper) => { await w.get('[data-testid="modal-ver-resultados"]').trigger('click'); await flushPromises() }
-const elegir = async (w: VueWrapper, id: number) => { await w.get(`[data-carrera-id="${id}"]`).trigger('click'); await flushPromises() }
+const CONSULTA_DE: Record<number, string> = { 1: 'psico', 2: 'psico', 3: 'comer' }
+const escribirEnModal = async (w: VueWrapper, q: string) => { await w.get('[data-testid="modal-busqueda-input"]').setValue(q); await flushPromises() }
+/** En el modal: escribe en el autocompletado y elige la sugerencia de esa carrera (por id). */
+const elegir = async (w: VueWrapper, id: number) => {
+  await escribirEnModal(w, CONSULTA_DE[id])
+  await w.get(`[data-carrera-id="${id}"]`).trigger('click')
+  await flushPromises()
+}
 const radio = async (w: VueWrapper, grupo: string, valor: 'Sí' | 'No') => {
   const b = w.get(`[data-testid="${grupo}"]`).findAll('button').find((x) => x.text() === valor)!
   await b.trigger('click')
@@ -109,23 +116,51 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     expect(w.find('[data-testid="modal-simulacion"]').exists()).toBe(false)
   })
 
-  it('Buscar abre el modal en «Paso 1 de 2 · Selección de carrera» y muestra modalidad y semestres', async () => {
+  it('Buscar con texto abre el modal en «Paso 1 de 2 · Selección de carrera» con sugerencias que muestran jornada y semestres', async () => {
     const { w } = await montar()
+    await w.get('[data-testid="buscador-input"]').setValue('psico')
     await abrir(w)
     expect(titulo(w)).toBe('Paso 1 de 2 · Selección de carrera')
     const lista = txt(w)
     expect(lista).toContain('Pregrado · Diurno · 10 semestres')
     expect(lista).toContain('Pregrado · Vespertino · 10 semestres')
-    expect(lista).toContain('Pregrado · Online · 10 semestres')
+    expect(lista).not.toContain('Pregrado · Online · 10 semestres')
     expect(w.get('[role="progressbar"]').attributes('aria-valuenow')).toBe('1')
   })
 
-  it('lo escrito en el buscador llega al modal como búsqueda (ignora tildes)', async () => {
+  it('lo escrito en el buscador llega al modal como búsqueda (ignora tildes y mayúsculas)', async () => {
     const { w } = await montar()
-    await w.get('[data-testid="buscador-input"]').setValue('psico')
+    await w.get('[data-testid="buscador-input"]').setValue('PSICOLOGIA')
     await abrir(w)
-    const ids = w.findAll('[role="option"]').map((o) => o.attributes('data-carrera-id'))
-    expect(ids.sort()).toEqual(['1', '2'])
+    const ids = w.findAll('[data-testid="modal-simulacion"] [role="option"]').map((o) => o.attributes('data-carrera-id'))
+    expect(ids).toEqual(['1', '2'])
+    expect((w.get('[data-testid="modal-busqueda-input"]').element as HTMLInputElement).value).toBe('PSICOLOGIA')
+  })
+
+  it('elegir una sugerencia en el buscador del paso 2 deja la carrera y abre el modal directo en Financiamiento', async () => {
+    const { w, getDatos, verResultados } = await montar()
+    await w.get('[data-testid="buscador-input"]').setValue('comercial')
+    await flushPromises()
+    expect(w.find('[data-testid="modal-simulacion"]').exists()).toBe(false)
+    expect(w.get('[role="option"]').text()).toContain('Ingeniería Comercial')
+    await w.get('[data-carrera-id="3"]').trigger('click')
+    await flushPromises()
+    expect(getDatos()).toMatchObject({ carrera: 'Ingeniería Comercial', carreraId: 3, tipoPrograma: 'Regular' })
+    expect(titulo(w)).toBe('Paso 2 de 2 · Financiamiento')
+    expect(verResultados).not.toHaveBeenCalled()
+    expect(registrarLead).not.toHaveBeenCalled()
+    expect(escrituras).not.toHaveBeenCalled()
+  })
+
+  it('sin coincidencias muestra «No encontramos esa carrera» con el contacto de Admisión', async () => {
+    const { w } = await montar()
+    await w.get('[data-testid="buscador-input"]').setValue('astronomia')
+    await flushPromises()
+    const vacio = w.get('[data-testid="sin-resultados"]')
+    expect(vacio.text()).toContain('No encontramos esa carrera')
+    expect(vacio.text()).toContain('admision@uniacc.cl')
+    expect(vacio.text()).toContain('+56 22 640 6100')
+    expect(vacio.text()).toContain('+56 22 640 6151')
   })
 
   it('sub-step 1: sin carrera muestra el error y no avanza; con carrera avanza y Atrás vuelve', async () => {
@@ -303,11 +338,14 @@ describe('PasoCarreraPregrado · buscador + modal', () => {
     expect(w.get('[data-testid="error-carrera-paso"]').text()).toBe('Selecciona una carrera para continuar.')
   })
 
-  it('extranjero fuera del país: el modal solo ofrece carreras Online y avisa por qué', async () => {
+  it('extranjero fuera del país: el autocompletado solo ofrece carreras Online y avisa por qué', async () => {
     const { w } = await montar({ extranjero: true, residencia_chilena: false })
     await abrir(w)
-    const ids = w.findAll('[role="option"]').map((o) => o.attributes('data-carrera-id'))
-    expect(ids).toEqual(['3'])
+    await escribirEnModal(w, 'comer')
+    expect(w.findAll('[role="option"]').map((o) => o.attributes('data-carrera-id'))).toEqual(['3'])
+    await escribirEnModal(w, 'psico')
+    expect(w.findAll('[role="option"]').filter((o) => o.isVisible())).toHaveLength(0)
+    expect(w.find('[data-testid="sin-resultados"]').exists()).toBe(true)
     expect(txt(w)).toContain('solo puedes acceder a carreras en modalidad online')
   })
 

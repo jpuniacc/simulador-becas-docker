@@ -72,6 +72,92 @@ export function filtrarCarreras<T extends CarreraBuscable>(carreras: T[], consul
   })
 }
 
+const ORDEN_MODALIDAD: Record<string, number> = { diurno: 0, vespertino: 1, semipresencial: 2, online: 3 }
+const palabras = (t: string): string[] => t.split(/\s+/).filter(Boolean)
+
+/**
+ * Una palabra de la consulta coincide si inicia alguna palabra del nombre; desde 3 letras también si está dentro de una
+ * palabra y puede coincidir con la jornada («diurno»). Con 1–2 letras no se mira la jornada, para no meter ruido («di» → Diurno).
+ */
+const coincideParte = (parte: string, nombre: string, modalidad: string): boolean => {
+  const texto = parte.length >= 3 ? `${nombre} ${modalidad}`.trim() : nombre
+  return palabras(texto).some((w) => w.startsWith(parte)) || (parte.length >= 3 && texto.includes(parte))
+}
+
+/**
+ * Sugerencias del autocompletado: sin tildes ni mayúsculas, por cualquier palabra del nombre o la modalidad.
+ * Orden: primero las que empiezan con lo escrito, luego las que lo tienen al inicio de alguna palabra,
+ * y al final las que lo contienen dentro de una palabra; a igual relevancia, por nombre y jornada.
+ * Con la consulta vacía no sugiere nada.
+ */
+export function sugerirCarreras<T extends CarreraBuscable>(carreras: T[], consulta: string, soloOnline = false): T[] {
+  const q = normalizarTexto(consulta).replace(/\s+/g, ' ')
+  if (!q) return []
+  const partes = q.split(' ')
+  const puntuadas: Array<{ c: T; nombre: string; mod: number; score: number }> = []
+  for (const c of carreras) {
+    const modalidad = normalizarTexto(c.modalidad_programa)
+    if (soloOnline && modalidad !== 'online') continue
+    const nombre = normalizarTexto(c.nombre_programa)
+    if (!partes.every((p) => coincideParte(p, nombre, modalidad))) continue
+    const score = nombre.startsWith(q) ? 0 : nombre.startsWith(partes[0]) ? 1 : partes.every((p) => palabras(`${nombre} ${modalidad}`).some((w) => w.startsWith(p))) ? 2 : 3
+    puntuadas.push({ c, nombre, mod: ORDEN_MODALIDAD[modalidad] ?? 9, score })
+  }
+  return puntuadas
+    .sort((a, b) => a.score - b.score || a.nombre.localeCompare(b.nombre, 'es') || a.mod - b.mod)
+    .map((x) => x.c)
+}
+
+export interface TramoTexto {
+  texto: string
+  coincide: boolean
+}
+
+/** Parte `texto` en tramos y marca los que coinciden con la consulta (ignora tildes y mayúsculas). */
+export function resaltarCoincidencias(texto: string, consulta: string): TramoTexto[] {
+  const original = texto || ''
+  const partes = normalizarTexto(consulta).split(/\s+/).filter(Boolean)
+  if (!original || !partes.length) return [{ texto: original, coincide: false }]
+
+  // Texto normalizado carácter a carácter, con el índice de origen de cada carácter normalizado
+  let norm = ''
+  const origen: number[] = []
+  for (let i = 0; i < original.length; i++) {
+    const n = original[i].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    for (const ch of n) { norm += ch; origen.push(i) }
+  }
+
+  const rangos: Array<[number, number]> = []
+  for (const parte of partes) {
+    let desde = 0
+    let pos = -1
+    while ((pos = norm.indexOf(parte, desde)) !== -1) {
+      if (pos === 0 || norm[pos - 1] === ' ') break
+      desde = pos + 1
+    }
+    if (pos === -1 && parte.length >= 3) pos = norm.indexOf(parte)
+    if (pos !== -1) rangos.push([origen[pos], origen[pos + parte.length - 1] + 1])
+  }
+  if (!rangos.length) return [{ texto: original, coincide: false }]
+
+  rangos.sort((a, b) => a[0] - b[0])
+  const unidos: Array<[number, number]> = []
+  for (const r of rangos) {
+    const ult = unidos[unidos.length - 1]
+    if (ult && r[0] <= ult[1]) ult[1] = Math.max(ult[1], r[1])
+    else unidos.push([r[0], r[1]])
+  }
+  const out: TramoTexto[] = []
+  let cursor = 0
+  for (const [a, b] of unidos) {
+    if (a > cursor) out.push({ texto: original.slice(cursor, a), coincide: false })
+    out.push({ texto: original.slice(a, b), coincide: true })
+    cursor = b
+  }
+  if (cursor < original.length) out.push({ texto: original.slice(cursor), coincide: false })
+  return out
+}
+
 /** «Pregrado · Diurno · 10 semestres» */
 export function detalleCarrera(c: CarreraBuscable | null | undefined): string {
   if (!c) return ''
