@@ -25,6 +25,7 @@ import {
 import type { FormData } from '@/types/simulador'
 import SelectorCuotas from './SelectorCuotas.vue'
 import BloqueReferencialEstado from './BloqueReferencialEstado.vue'
+import BotonContactarAsesor from './BotonContactarAsesor.vue'
 
 interface Props {
   formData?: Partial<FormData>
@@ -402,6 +403,11 @@ defineExpose({ simulate: handleSimulate })
 
     <!-- Exportar PDF -->
     <div v-if="!isLoading && !error && calculoBecas && !isGeneratingPDF" class="rp-export">
+      <BotonContactarAsesor
+        :carrera="carreraInfo.nombre_programa || fd.carrera || ''"
+        :total="formatCurrency(resumen.totalEstimado)"
+        :segmentacion="props.segmentacion"
+      />
       <Button label="Exportar PDF" icon="pi pi-download" severity="secondary" outlined @click="handleExportPDF" />
     </div>
 
@@ -803,6 +809,8 @@ defineExpose({ simulate: handleSimulate })
 
 .rp-export {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: center;
   margin-top: 1.5rem;
 }

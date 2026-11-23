@@ -111,14 +111,18 @@ describe('ResumenPregrado', () => {
     expect(sin.get('[data-testid="sin-beca"]').text()).toBe('Con tus datos no identificamos una beca UNIACC; Admisión puede revisar tu caso')
   })
 
-  it('muestra «Simulación referencial · sujeta a validación», disclaimer, vigencia y contacto sin botón de asesor', () => {
+  it('muestra «Simulación referencial · sujeta a validación», disclaimer, vigencia y contacto con botón de asesor', () => {
     const w = montar()
     const t = texto(w)
     expect(t).toContain('Simulación referencial · sujeta a validación')
     expect(w.get('[data-testid="disclaimer"]').text()).toContain('preselección y selección')
     expect(t).toContain('duración de 1 semana')
     expect(w.get('[data-testid="contacto"]').text()).toContain('admision@uniacc.cl')
-    expect(t).not.toMatch(/asesor me contacte|Contactar asesor/i)
+    const b = w.get('[data-testid="contactar-asesor"]')
+    expect(b.text()).toContain('Contactar asesor')
+    expect(b.attributes('href')).toMatch(/^https:\/\/wa\.me\/56942284987\?text=/)
+    expect(b.attributes('target')).toBe('_blank')
+    expect(b.attributes('rel')).toContain('noopener')
   })
 
   it('la descripción de Becas Adicionales usa el clamp compatible (ellipsis)', () => {

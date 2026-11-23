@@ -143,3 +143,14 @@ export function etiquetaBecaAplicada(
     : `${b.descuento_aplicado}%`
   return `${b.beca?.nombre || 'Beca UNIACC'} · ${valor} · ${TEXTOS_RESUMEN.sujetaARequisitos}`
 }
+
+/** Contacto con asesor por WhatsApp (número sobreescribible con VITE_WHATSAPP_ASESOR). */
+export const WHATSAPP_ASESOR: string =
+  ((import.meta.env.VITE_WHATSAPP_ASESOR as string | undefined) || '56942284987').replace(/\D/g, '')
+
+export function urlWhatsAppAsesor(carrera: string, total: string): string {
+  const mensaje =
+    `Hola, hice una simulación en el Simulador de Becas UNIACC para ${carrera || 'una carrera'}` +
+    `${total ? ` (total estimado ${total})` : ''}. Quisiera hablar con un asesor.`
+  return `https://wa.me/${WHATSAPP_ASESOR}?text=${encodeURIComponent(mensaje)}`
+}
