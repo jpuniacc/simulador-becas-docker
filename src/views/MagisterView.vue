@@ -312,7 +312,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                         </div>
                         <div class="flex pt-6 justify-between">
                             <Button
-                                label="Atras"
+                                label="Atrás"
                                 class="m-4"
                                 severity="secondary"
                                 icon="pi pi-arrow-left"
@@ -369,7 +369,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                         </div>
                         <div class="pt-6">
                             <Button
-                                label="Atras"
+                                label="Atrás"
                                 class="m-4"
                                 severity="secondary"
                                 icon="pi pi-arrow-left"
@@ -435,7 +435,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
 }
 
 .stepper-header {
-    @apply rounded p-3 !important
+    @apply rounded p-3 pr-14 !important
 }
 
 .stepper-panel {

@@ -280,7 +280,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                                 @ver-resultados="handleNextToStep3(activateCallback)" />
                         </div>
                         <div class="flex pt-6 justify-between">
-                            <Button label="Atras" class="m-4" severity="secondary" icon="pi pi-arrow-left"
+                            <Button label="Atrás" class="m-4" severity="secondary" icon="pi pi-arrow-left"
                                 @click="activateCallback('1')" />
                             <div
                                 class="m-4 button-wrapper"
@@ -336,7 +336,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
                             <ResumenPregrado ref="resultsRef" :form-data="formData" segmentacion="pregrado" />
                         </div>
                         <div class="pt-6">
-                            <Button label="Atras" class="m-4" severity="secondary" icon="pi pi-arrow-left"
+                            <Button label="Atrás" class="m-4" severity="secondary" icon="pi pi-arrow-left"
                                 @click="activateCallback('2')" />
                         </div>
                     </StepPanel>
@@ -417,7 +417,7 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
 }
 
 .stepper-header {
-    @apply rounded p-3 !important
+    @apply rounded p-3 pr-14 !important
 }
 
 .stepper-panel {
