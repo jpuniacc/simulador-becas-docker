@@ -21,7 +21,6 @@ import { ANIO_POSTULACION } from '@/utils/config'
 import { Award, CheckCircle, FileText, Info, Clock } from 'lucide-vue-next'
 import { exportSimulacionPdf } from '@/utils/pdfSimulacion'
 import Button from 'primevue/button'
-import BotonContactarAsesor from './BotonContactarAsesor.vue'
 // JPS: Imports de componentes shadcn para versión mobile con accordion
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Card as ShadcnCard, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -1489,11 +1488,6 @@ defineExpose({
 
     <!-- Botón de exportar PDF (fuera del contenido del PDF) -->
     <div v-if="!isLoading && !error && calculoBecas && !isGeneratingPDF" class="export-pdf-section">
-      <BotonContactarAsesor
-        :carrera="carreraInfo.nombre_programa || formData.carrera || ''"
-        :total="formatCurrency(arancelMasMatricula)"
-        :segmentacion="props.segmentacion"
-      />
       <Button label="Exportar PDF" icon="pi pi-download" @click="handleExportPDF" class="export-pdf-button"
         severity="secondary" outlined />
     </div>
@@ -2429,7 +2423,7 @@ defineExpose({
 
 /* Estilos para botón de exportar PDF */
 .export-pdf-section {
-  @apply flex flex-wrap justify-center gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-slate-600;
+  @apply flex justify-center mt-8 pt-6 border-t border-gray-200 dark:border-slate-600;
 }
 
 .export-pdf-button {
