@@ -429,16 +429,16 @@ onMounted(async () => {
     @apply bg-white border border-gray-200 rounded-lg p-5 transition-all hover:shadow-lg hover:border-blue-300;
 }
 
-:global(html.dark) .carrera-card {
+:global(html.dark .carrera-card) {
     @apply bg-slate-800 border-slate-600 hover:border-blue-400;
 }
 
-:global(html.dark) .resto-carreras-title,
-:global(html.dark) .carrera-title {
+:global(html.dark .resto-carreras-title),
+:global(html.dark .carrera-title) {
     @apply text-gray-100;
 }
 
-:global(html.dark) .carrera-details {
+:global(html.dark .carrera-details) {
     @apply border-slate-600;
 }
 

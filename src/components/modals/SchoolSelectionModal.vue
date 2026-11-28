@@ -385,24 +385,24 @@ onMounted(async () => {
   background: #94a3b8;
 }
 
-:global(html.dark) .school-modal {
+:global(html.dark .school-modal) {
   background-color: #0f172a;
   color: #f1f5f9;
 }
 
-:global(html.dark) .overflow-y-auto {
+:global(html.dark .overflow-y-auto) {
   scrollbar-color: #475569 #1e293b;
 }
 
-:global(html.dark) .overflow-y-auto::-webkit-scrollbar-track {
+:global(html.dark .overflow-y-auto::-webkit-scrollbar-track) {
   background: #1e293b;
 }
 
-:global(html.dark) .overflow-y-auto::-webkit-scrollbar-thumb {
+:global(html.dark .overflow-y-auto::-webkit-scrollbar-thumb) {
   background: #475569;
 }
 
-:global(html.dark) .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+:global(html.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover) {
   background: #64748b;
 }
 </style>

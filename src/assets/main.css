@@ -1098,3 +1098,73 @@ html.dark .export-pdf-button.p-button .p-button-icon {
   color: #f8fafc !important;
 }
 
+
+/* ============================================================
+   Refuerzo modo oscuro: tarjetas de radio, textos del formulario,
+   tarjetas de carrera, barra superior del home y botones deshabilitados.
+   Evita que "html.dark label" aclare el texto sobre fondos claros.
+   ============================================================ */
+html.dark .g-title,
+html.dark .g-label,
+html.dark .g-check-label {
+  color: #e2e8f0 !important;
+}
+
+html.dark .g-subtitle,
+html.dark .g-legend,
+html.dark .g-hint,
+html.dark .g-privacy-fine,
+html.dark .g-privacy-sim {
+  color: #94a3b8 !important;
+}
+
+html.dark .g-radio-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .g-radio-card-on {
+  background-color: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark .g-privacy {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .pc-card {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html.dark .pc-card-nombre {
+  color: #bfdbfe !important;
+}
+
+html.dark .home-topbar {
+  background: #0f172a !important;
+}
+
+html.dark .home-cta {
+  background-color: #9a3412 !important;
+  color: #ffffff !important;
+}
+
+html.dark .institucion-help-text {
+  color: #94a3b8 !important;
+}
+
+html.dark .cuota-btn-on {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+html.dark [role="dialog"] button:disabled {
+  background-color: #334155 !important;
+  color: #cbd5e1 !important;
+  border-color: #475569 !important;
+}

@@ -164,33 +164,33 @@ const volver = () => {
   @apply absolute right-3 top-3 rounded-full bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white;
 }
 
-:global(html.dark) .camino-view {
+:global(html.dark .camino-view) {
   background: #0f172a;
   color: #f8fafc;
 }
 
-:global(html.dark) .camino-subtitle,
-:global(html.dark) .camino-back,
-:global(html.dark) .camino-card-desc {
+:global(html.dark .camino-subtitle),
+:global(html.dark .camino-back),
+:global(html.dark .camino-card-desc) {
   color: #cbd5e1;
 }
 
-:global(html.dark) .camino-card-activa {
+:global(html.dark .camino-card-activa) {
   background: #1e293b;
   border-color: #334155;
 }
 
-:global(html.dark) .camino-card-inactiva {
+:global(html.dark .camino-card-inactiva) {
   background: #172033;
   border-color: #334155;
 }
 
-:global(html.dark) .camino-card-inactiva .camino-card-desc,
-:global(html.dark) .camino-card-inactiva .camino-card-title {
+:global(html.dark .camino-card-inactiva .camino-card-desc),
+:global(html.dark .camino-card-inactiva .camino-card-title) {
   color: #64748b;
 }
 
-:global(html.dark) .camino-card-cta {
+:global(html.dark .camino-card-cta) {
   color: #7dd3fc;
 }
 </style>

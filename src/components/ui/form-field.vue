@@ -75,11 +75,11 @@ defineSlots<{
   @apply text-sm font-medium text-gray-900;
 }
 
-:global(html.dark) .form-label {
+:global(html.dark .form-label) {
   @apply text-gray-100;
 }
 
-:global(html.dark) .form-field {
+:global(html.dark .form-field) {
   @apply text-gray-100;
 }
 </style>

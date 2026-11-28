@@ -1709,7 +1709,7 @@ defineExpose({
   color: #FFFFFF;
 }
 
-:global(html.dark) :deep(.career-tag) {
+:global(html.dark .career-tag) {
   background-color: #1e40af !important;
   color: #ffffff !important;
 }
@@ -2549,11 +2549,11 @@ defineExpose({
   margin-bottom: 12px;
 }
 
-:global(html.dark) .payment-label {
+:global(html.dark .payment-label) {
   color: #f8fafc !important;
 }
 
-:global(html.dark) .slider-value {
+:global(html.dark .slider-value) {
   background-color: #334155 !important;
   border-color: #64748b !important;
   color: #ffffff !important;
@@ -2712,7 +2712,7 @@ defineExpose({
   color: #797979;
 }
 
-:global(html.dark) :deep(.info-estado-card .p-card-content p) {
+:global(html.dark .info-estado-card .p-card-content p) {
   color: #e2e8f0 !important;
 }
 
@@ -2727,12 +2727,12 @@ defineExpose({
   text-decoration: underline;
 }
 
-:global(html.dark) :deep(.info-estado-card .p-card-content a) {
+:global(html.dark .info-estado-card .p-card-content a) {
   color: #93c5fd !important;
 }
 
-:global(html.dark) :deep(.info-estado-card .p-card-title span),
-:global(html.dark) :deep(.becas-internas-card .p-card-title span) {
+:global(html.dark .info-estado-card .p-card-title span),
+:global(html.dark .becas-internas-card .p-card-title span) {
   color: #e0f2fe !important;
 }
 
@@ -2944,7 +2944,7 @@ defineExpose({
   color: #668BB2;
 }
 
-:global(html.dark) .texto-info {
+:global(html.dark .texto-info) {
   color: #e2e8f0 !important;
 }
 
@@ -2958,7 +2958,7 @@ defineExpose({
   color: #52D931;
 }
 
-:global(html.dark) .texto-descuento {
+:global(html.dark .texto-descuento) {
   color: #86efac !important;
 }
 
@@ -3090,7 +3090,7 @@ defineExpose({
   box-shadow: 0 2px 8px rgba(26, 59, 102, 0.06);
 }
 
-:global(html.dark) .disclaimer-referencial-inner {
+:global(html.dark .disclaimer-referencial-inner) {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
   border-color: rgba(148, 163, 184, 0.35) !important;
   border-left-color: #60a5fa !important;
@@ -3104,7 +3104,7 @@ defineExpose({
   margin-top: 0.15rem;
 }
 
-:global(html.dark) .disclaimer-referencial-icon {
+:global(html.dark .disclaimer-referencial-icon) {
   color: #93c5fd !important;
 }
 
@@ -3117,7 +3117,7 @@ defineExpose({
   font-weight: 500;
 }
 
-:global(html.dark) .disclaimer-referencial-text {
+:global(html.dark .disclaimer-referencial-text) {
   color: #e2e8f0 !important;
 }
 
@@ -3125,7 +3125,7 @@ defineExpose({
   font-weight: 700;
 }
 
-:global(html.dark) .disclaimer-referencial-main {
+:global(html.dark .disclaimer-referencial-main) {
   color: #f8fafc !important;
 }
 
@@ -3146,7 +3146,7 @@ defineExpose({
   letter-spacing: 0.02em;
 }
 
-:global(html.dark) .disclaimer-referencial-duration {
+:global(html.dark .disclaimer-referencial-duration) {
   background: linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%) !important;
   border-color: #3b82f6 !important;
   color: #f8fafc !important;
@@ -3317,8 +3317,8 @@ defineExpose({
   line-height: 1.6;
 }
 
-:global(html.dark) .becas-informativas-texto,
-:global(html.dark) .becas-informativas-texto-mobile {
+:global(html.dark .becas-informativas-texto),
+:global(html.dark .becas-informativas-texto-mobile) {
   color: #cbd5e1 !important;
 }
 
@@ -3351,8 +3351,8 @@ defineExpose({
   text-overflow: ellipsis;
 }
 
-:global(html.dark) .description-text,
-:global(html.dark) .description-text-compact {
+:global(html.dark .description-text),
+:global(html.dark .description-text-compact) {
   color: #cbd5e1 !important;
 }
 
@@ -3461,173 +3461,173 @@ defineExpose({
 }
 
 /* Tema oscuro — Results (clase .dark en html) */
-:global(html.dark) .loading-content {
+:global(html.dark .loading-content) {
   background-color: #1e293b !important;
   border-color: #475569 !important;
 }
 
-:global(html.dark) .loading-message {
+:global(html.dark .loading-message) {
   color: #e2e8f0 !important;
 }
 
-:global(html.dark) .loading-container {
+:global(html.dark .loading-container) {
   background-color: transparent;
 }
 
-:global(html.dark) .career-name {
+:global(html.dark .career-name) {
   color: #93c5fd !important;
 }
 
-:global(html.dark) .benefits-section-title {
+:global(html.dark .benefits-section-title) {
   color: #f1f5f9 !important;
 }
 
-:global(html.dark) .subsection-title {
+:global(html.dark .subsection-title) {
   color: #e2e8f0 !important;
   border-color: #475569 !important;
 }
 
-:global(html.dark) .benefit-card {
+:global(html.dark .benefit-card) {
   background-color: #1e293b !important;
   border-color: #475569 !important;
 }
 
-:global(html.dark) .benefit-card-estado {
+:global(html.dark .benefit-card-estado) {
   border-color: #7c3aed !important;
   background-color: rgba(76, 29, 149, 0.35) !important;
 }
 
-:global(html.dark) .benefit-card-interno {
+:global(html.dark .benefit-card-interno) {
   border-color: #3b82f6 !important;
   background-color: #1e293b !important;
 }
 
-:global(html.dark) .benefit-title {
+:global(html.dark .benefit-title) {
   color: #ffffff !important;
 }
 
-:global(html.dark) .benefit-card p,
-:global(html.dark) .benefit-description,
-:global(html.dark) .benefit-card .text-sm {
+:global(html.dark .benefit-card p),
+:global(html.dark .benefit-description),
+:global(html.dark .benefit-card .text-sm) {
   color: #cbd5e1 !important;
 }
 
-:global(html.dark) .table-row.benefit-row {
+:global(html.dark .table-row.benefit-row) {
   background-color: #1e293b !important;
 }
 
-:global(html.dark) .table-row.estado-row {
+:global(html.dark .table-row.estado-row) {
   background-color: rgba(76, 29, 149, 0.4) !important;
 }
 
-:global(html.dark) .table-row.interno-row {
+:global(html.dark .table-row.interno-row) {
   background-color: rgba(30, 58, 95, 0.6) !important;
 }
 
-:global(html.dark) .table-row.cae-row {
+:global(html.dark .table-row.cae-row) {
   background-color: rgba(124, 45, 18, 0.35) !important;
 }
 
-:global(html.dark) .table-row.subtotal-row {
+:global(html.dark .table-row.subtotal-row) {
   background-color: #334155 !important;
 }
 
-:global(html.dark) .table-row.discount-total-row,
-:global(html.dark) .table-row.final-row {
+:global(html.dark .table-row.discount-total-row),
+:global(html.dark .table-row.final-row) {
   background-color: rgba(20, 83, 45, 0.35) !important;
 }
 
-:global(html.dark) .table-row.info-row {
+:global(html.dark .table-row.info-row) {
   background-color: #1e293b !important;
 }
 
-:global(html.dark) .beca-info-description,
-:global(html.dark) .beca-info-list-item {
+:global(html.dark .beca-info-description),
+:global(html.dark .beca-info-list-item) {
   color: #cbd5e1 !important;
 }
 
-:global(html.dark) :deep(.p-card),
-:global(html.dark) :deep(.p-drawer),
-:global(html.dark) :deep(.p-dialog) {
+:global(html.dark .p-card),
+:global(html.dark .p-drawer),
+:global(html.dark .p-dialog) {
   background-color: #1e293b !important;
   color: #f1f5f9 !important;
 }
 
 /* Cards resumen financiero */
-:global(html.dark) :deep(.summary-item.first-column-card .p-card),
-:global(html.dark) :deep(.summary-item.matricula-card .p-card),
-:global(html.dark) .summary-item.first-column-card,
-:global(html.dark) .summary-item.matricula-card {
+:global(html.dark .summary-item.first-column-card .p-card),
+:global(html.dark .summary-item.matricula-card .p-card),
+:global(html.dark .summary-item.first-column-card),
+:global(html.dark .summary-item.matricula-card) {
   background-color: #1e3a5f !important;
 }
 
-:global(html.dark) .first-column-label,
-:global(html.dark) .first-column-value,
-:global(html.dark) :deep(.summary-item.first-column-card .first-column-content > div),
-:global(html.dark) :deep(.summary-item.first-column-card .text-gray-600),
-:global(html.dark) :deep(.summary-item.first-column-card .text-gray-900) {
+:global(html.dark .first-column-label),
+:global(html.dark .first-column-value),
+:global(html.dark .summary-item.first-column-card .first-column-content > div),
+:global(html.dark .summary-item.first-column-card .text-gray-600),
+:global(html.dark .summary-item.first-column-card .text-gray-900) {
   color: #f8fafc !important;
 }
 
-:global(html.dark) :deep(.summary-item.discount),
-:global(html.dark) :deep(.summary-item.discount .p-card),
-:global(html.dark) :deep(.summary-item.discount .p-card-content) {
+:global(html.dark .summary-item.discount),
+:global(html.dark .summary-item.discount .p-card),
+:global(html.dark .summary-item.discount .p-card-content) {
   background-color: #1e40af !important;
 }
 
-:global(html.dark) :deep(.discount-label),
-:global(html.dark) :deep(.discount-value) {
+:global(html.dark .discount-label),
+:global(html.dark .discount-value) {
   color: #ffffff !important;
 }
 
-:global(html.dark) :deep(.summary-item.final),
-:global(html.dark) :deep(.summary-item.final .p-card),
-:global(html.dark) :deep(.summary-item.final .p-card-content) {
+:global(html.dark .summary-item.final),
+:global(html.dark .summary-item.final .p-card),
+:global(html.dark .summary-item.final .p-card-content) {
   background-color: #14532d !important;
 }
 
-:global(html.dark) :deep(.final-label),
-:global(html.dark) :deep(.final-cuotas),
-:global(html.dark) :deep(.final-value),
-:global(html.dark) :deep(.final-details),
-:global(html.dark) :deep(.final-details-text) {
+:global(html.dark .final-label),
+:global(html.dark .final-cuotas),
+:global(html.dark .final-value),
+:global(html.dark .final-details),
+:global(html.dark .final-details-text) {
   color: #dcfce7 !important;
 }
 
-:global(html.dark) :deep(.final-value) {
+:global(html.dark .final-value) {
   color: #86efac !important;
 }
 
-:global(html.dark) :deep(.contact-message .p-card),
-:global(html.dark) .contact-message {
+:global(html.dark .contact-message .p-card),
+:global(html.dark .contact-message) {
   background-color: #1e293b !important;
   color: #e2e8f0 !important;
 }
 
-:global(html.dark) .contact-message-text,
-:global(html.dark) .simulation-question {
+:global(html.dark .contact-message-text),
+:global(html.dark .simulation-question) {
   color: #e2e8f0 !important;
 }
 
-:global(html.dark) .contact-link {
+:global(html.dark .contact-link) {
   color: #93c5fd !important;
 }
 
-:global(html.dark) .export-pdf-button,
-:global(html.dark) :deep(.export-pdf-button) {
+:global(html.dark .export-pdf-button),
+:global(html.dark .export-pdf-button) {
   background-color: #1e293b !important;
   border: 1px solid #94a3b8 !important;
   color: #f8fafc !important;
 }
 
-:global(html.dark) .results-table,
-:global(html.dark) .detail-table,
-:global(html.dark) table {
+:global(html.dark .results-table),
+:global(html.dark .detail-table),
+:global(html.dark table) {
   background-color: #1e293b !important;
   color: #e2e8f0 !important;
 }
 
-:global(html.dark) .mobile-card {
+:global(html.dark .mobile-card) {
   background-color: #1e293b !important;
   border-color: #475569 !important;
   color: #e2e8f0 !important;

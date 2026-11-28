@@ -789,7 +789,7 @@ onUnmounted(() => {
     @apply block text-sm font-medium text-gray-700 mb-2;
 }
 
-:global(html.dark) .form-label {
+:global(html.dark .form-label) {
     color: #e2e8f0 !important;
 }
 
@@ -851,13 +851,13 @@ onUnmounted(() => {
     border-color: var(--p-primary-500);
 }
 
-:global(html.dark) .suggestion-chip {
+:global(html.dark .suggestion-chip) {
     background-color: #0f172a !important;
     border-color: #60a5fa !important;
     color: #e0f2fe !important;
 }
 
-:global(html.dark) .suggestion-chip:hover {
+:global(html.dark .suggestion-chip:hover) {
     background-color: #1e293b !important;
     border-color: #93c5fd !important;
     color: #ffffff !important;
@@ -882,18 +882,18 @@ onUnmounted(() => {
     @apply text-sm text-gray-700 dark:text-slate-200;
 }
 
-:global(html.dark) .carrera-container .carrera-title,
-:global(html.dark) .carrera-title {
+:global(html.dark .carrera-container .carrera-title),
+:global(html.dark .carrera-title) {
     color: #ffffff !important;
 }
 
-:global(html.dark) .carrera-container .carrera-subtitle,
-:global(html.dark) .carrera-subtitle {
+:global(html.dark .carrera-container .carrera-subtitle),
+:global(html.dark .carrera-subtitle) {
     color: #e2e8f0 !important;
 }
 
-:global(html.dark) .carrera-container .carrera-icon,
-:global(html.dark) .carrera-icon {
+:global(html.dark .carrera-container .carrera-icon),
+:global(html.dark .carrera-icon) {
     color: #93c5fd !important;
 }
 
@@ -928,22 +928,22 @@ onUnmounted(() => {
 }
 
 /* Tema oscuro — carrera / sugerencias / financiamiento */
-:global(html.dark) .carrera-container {
+:global(html.dark .carrera-container) {
     background-color: #1e293b !important;
     border-color: #64748b !important;
 }
 
-:global(html.dark) .carrera-icon,
-:global(html.dark) .carrera-help-text,
-:global(html.dark) .suggestions-label {
+:global(html.dark .carrera-icon),
+:global(html.dark .carrera-help-text),
+:global(html.dark .suggestions-label) {
     color: #e2e8f0 !important;
 }
 
-:global(html.dark) .carrera-title {
+:global(html.dark .carrera-title) {
     color: #ffffff !important;
 }
 
-:global(html.dark) .carrera-subtitle {
+:global(html.dark .carrera-subtitle) {
     color: #e2e8f0 !important;
 }
 
@@ -969,71 +969,71 @@ onUnmounted(() => {
     color: #94a3b8 !important;
 }
 
-:global(html.dark) .option-card {
+:global(html.dark .option-card) {
     border-color: #334155;
     background-color: #1e293b;
 }
 
-:global(html.dark) .option-card.selected {
+:global(html.dark .option-card.selected) {
     border-color: #3b82f6;
     background-color: #1e3a5f;
 }
 
-:global(html.dark) .option-icon {
+:global(html.dark .option-icon) {
     background-color: #334155;
     color: #cbd5e1;
 }
 
-:global(html.dark) .option-card.selected .option-icon {
+:global(html.dark .option-card.selected .option-icon) {
     background-color: #3b82f6;
     color: #ffffff;
 }
 
-:global(html.dark) .option-text h5 {
+:global(html.dark .option-text h5) {
     color: #f1f5f9 !important;
 }
 
-:global(html.dark) .option-text p {
+:global(html.dark .option-text p) {
     color: #94a3b8 !important;
 }
 
-:global(html.dark) :deep(.carrera-autocomplete .p-autocomplete-input),
-:global(html.dark) :deep(.carrera-autocomplete .p-inputtext) {
+:global(html.dark .carrera-autocomplete .p-autocomplete-input),
+:global(html.dark .carrera-autocomplete .p-inputtext) {
     background-color: #334155 !important;
     border-color: #94a3b8 !important;
     color: #ffffff !important;
 }
 
-:global(html.dark) :deep(.carrera-autocomplete .p-autocomplete-dropdown) {
+:global(html.dark .carrera-autocomplete .p-autocomplete-dropdown) {
     background-color: #475569 !important;
     border-color: #94a3b8 !important;
     color: #f8fafc !important;
 }
 
 /* SelectButton PAES / financiamiento — scoped deep override */
-:global(html.dark) :deep(.paes-select-button .p-togglebutton),
-:global(html.dark) :deep(.paes-select-button .p-button),
-:global(html.dark) :deep(.paes-select-button [role="button"]) {
+:global(html.dark .paes-select-button .p-togglebutton),
+:global(html.dark .paes-select-button .p-button),
+:global(html.dark .paes-select-button [role="button"]) {
     background: #1e293b !important;
     background-color: #1e293b !important;
     border: 1px solid #64748b !important;
     color: #f8fafc !important;
 }
 
-:global(html.dark) :deep(.paes-select-button .p-togglebutton.p-highlight),
-:global(html.dark) :deep(.paes-select-button .p-button.p-highlight),
-:global(html.dark) :deep(.paes-select-button [data-p="checked"]),
-:global(html.dark) :deep(.paes-select-button [data-p~="checked"]),
-:global(html.dark) :deep(.paes-select-button [data-p-checked="true"]),
-:global(html.dark) :deep(.paes-select-button .p-togglebutton-checked) {
+:global(html.dark .paes-select-button .p-togglebutton.p-highlight),
+:global(html.dark .paes-select-button .p-button.p-highlight),
+:global(html.dark .paes-select-button [data-p="checked"]),
+:global(html.dark .paes-select-button [data-p~="checked"]),
+:global(html.dark .paes-select-button [data-p-checked="true"]),
+:global(html.dark .paes-select-button .p-togglebutton-checked) {
     background: #2563eb !important;
     background-color: #2563eb !important;
     border-color: #2563eb !important;
     color: #ffffff !important;
 }
 
-:global(html.dark) :deep(.paes-select-button .p-togglebutton-label),
-:global(html.dark) :deep(.paes-select-button .p-button-label) {
+:global(html.dark .paes-select-button .p-togglebutton-label),
+:global(html.dark .paes-select-button .p-button-label) {
     color: inherit !important;
 }
 

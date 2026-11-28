@@ -1432,18 +1432,18 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
     @apply text-gray-700;
 }
 
-:global(html.dark) .nivel-educativo-label,
-:global(html.dark) .checkbox-label,
-:global(html.dark) .colegio-label,
-:global(html.dark) .form-label {
+:global(html.dark .nivel-educativo-label),
+:global(html.dark .checkbox-label),
+:global(html.dark .colegio-label),
+:global(html.dark .form-label) {
     color: #e2e8f0 !important;
 }
 
-:global(html.dark) .nivel-educativo-icon {
+:global(html.dark .nivel-educativo-icon) {
     color: #94a3b8 !important;
 }
 
-:global(html.dark) .nivel-educativo-icon:hover {
+:global(html.dark .nivel-educativo-icon:hover) {
     color: #e2e8f0 !important;
 }
 
@@ -1476,13 +1476,13 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
     color: var(--p-primary-900) !important;
 }
 
-:global(html.dark) :deep(.colegio-button) {
+:global(html.dark .colegio-button) {
     color: #93c5fd !important;
     border-color: #3b82f6 !important;
     background-color: #1e293b !important;
 }
 
-:global(html.dark) :deep(.colegio-button:hover) {
+:global(html.dark .colegio-button:hover) {
     background-color: #334155 !important;
     color: #e0f2fe !important;
     border-color: #60a5fa !important;
@@ -1517,17 +1517,17 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
     color: var(--p-primary-700);
 }
 
-:global(html.dark) .colegio-selected {
+:global(html.dark .colegio-selected) {
     background-color: #1e3a5f !important;
     border-color: #3b82f6 !important;
 }
 
-:global(html.dark) .colegio-nombre {
+:global(html.dark .colegio-nombre) {
     color: #e0f2fe !important;
 }
 
-:global(html.dark) .colegio-location,
-:global(html.dark) .colegio-icon {
+:global(html.dark .colegio-location),
+:global(html.dark .colegio-icon) {
     color: #93c5fd !important;
 }
 
@@ -1601,22 +1601,22 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
     @apply text-xs text-gray-500 italic mt-2.5;
 }
 
-:global(html.dark) .consentimiento-asterisco,
-:global(html.dark) .consentimiento-icon {
+:global(html.dark .consentimiento-asterisco),
+:global(html.dark .consentimiento-icon) {
     color: #93c5fd !important;
 }
 
-:global(html.dark) .consentimiento-wrapper {
+:global(html.dark .consentimiento-wrapper) {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(30, 64, 175, 0.2) 100%) !important;
     border-color: rgba(147, 197, 253, 0.35) !important;
     border-left-color: #60a5fa !important;
 }
 
-:global(html.dark) .consentimiento-title {
+:global(html.dark .consentimiento-title) {
     color: #e0f2fe !important;
 }
 
-:global(html.dark) .consentimiento-disclaimer {
+:global(html.dark .consentimiento-disclaimer) {
     color: #94a3b8 !important;
 }
 
@@ -1763,32 +1763,32 @@ watch(() => formData.value.nivelEducativo, (newNivel) => {
     @apply mt-2 text-xs text-gray-600;
 }
 
-:global(html.dark) .g-title,
-:global(html.dark) .g-label,
-:global(html.dark) .g-check-label {
+:global(html.dark .g-title),
+:global(html.dark .g-label),
+:global(html.dark .g-check-label) {
     color: #e2e8f0 !important;
 }
 
-:global(html.dark) .g-subtitle,
-:global(html.dark) .g-legend,
-:global(html.dark) .g-hint,
-:global(html.dark) .g-privacy-fine,
-:global(html.dark) .g-privacy-sim {
+:global(html.dark .g-subtitle),
+:global(html.dark .g-legend),
+:global(html.dark .g-hint),
+:global(html.dark .g-privacy-fine),
+:global(html.dark .g-privacy-sim) {
     color: #94a3b8 !important;
 }
 
-:global(html.dark) .g-radio-card {
+:global(html.dark .g-radio-card) {
     background-color: #1e293b;
     border-color: #334155;
     color: #e2e8f0;
 }
 
-:global(html.dark) .g-radio-card-on {
+:global(html.dark .g-radio-card-on) {
     background-color: #1e3a5f;
     border-color: #3b82f6;
 }
 
-:global(html.dark) .g-privacy {
+:global(html.dark .g-privacy) {
     background-color: #1e293b;
     color: #e2e8f0;
 }

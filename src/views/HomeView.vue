@@ -132,39 +132,46 @@ const goToSimulator = () => {
   @apply text-xs text-gray-500 leading-relaxed;
 }
 
-:global(html.dark) .home-view {
+:global(html.dark .home-view) {
   background: #0f172a;
   color: #f8fafc;
 }
 
-:global(html.dark) .home-topbar {
-  background: #ffffff;
+:global(html.dark .home-topbar) {
+  background: #0f172a;
 }
 
-:global(html.dark) .home-title {
+/* El logo tiene fondo blanco opaco: se muestra como insignia clara sobre la barra oscura */
+:global(html.dark .home-logo) {
+  background: #ffffff;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.5rem;
+}
+
+:global(html.dark .home-title) {
   color: #f8fafc;
 }
 
-:global(html.dark) .home-subtitle,
-:global(html.dark) .home-trust,
-:global(html.dark) .home-note {
+:global(html.dark .home-subtitle),
+:global(html.dark .home-trust),
+:global(html.dark .home-note) {
   color: #cbd5e1;
 }
 
-:global(html.dark) .home-how {
+:global(html.dark .home-how) {
   background: #1e293b;
   border-color: #334155;
 }
 
-:global(html.dark) .home-how-list li {
+:global(html.dark .home-how-list li) {
   color: #e2e8f0;
 }
 
-:global(html.dark) .home-how-title {
+:global(html.dark .home-how-title) {
   color: #94a3b8;
 }
 
-:global(html.dark) .home-how-num {
+:global(html.dark .home-how-num) {
   background: #f8fafc;
   color: #0f172a;
 }

@@ -245,8 +245,9 @@ defineExpose({ isFormValid, markAsSubmitted, getMissingFields })
 <!-- Modo oscuro: sin "scoped" para que la clase html.dark gane a los estilos claros -->
 <style>
 html.dark .pc-buscador { background: #1e293b; }
+html.dark .pc-card { background: #1e293b; border-color: #475569; }
 html.dark .pc-cta, html.dark .pc-sub, html.dark .pc-fila dd { color: #f1f5f9; }
-html.dark html.dark html.dark .pc-card-nombre, html.dark .pc-card-icono { color: #bfdbfe; }
+html.dark .pc-card-nombre, html.dark .pc-card-icono { color: #bfdbfe; }
 html.dark .pc-etiqueta, html.dark .pc-card-detalle, html.dark .pc-fila dt, html.dark .pc-noaplica { color: #cbd5e1; }
 html.dark .pc-fila { border-color: #334155; }
 html.dark .pc-error { color: #fca5a5; }
