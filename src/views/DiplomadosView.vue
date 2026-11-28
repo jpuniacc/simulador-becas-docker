@@ -471,4 +471,17 @@ const handleNextToStep3 = async (activateCallback: (step: string) => void) => {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Móvil: el título no debe quedar bajo el botón de tema (fijo arriba a la derecha) */
+@media (max-width: 480px) {
+    .header-container h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .header-container h1 {
+        font-size: 1.3rem;
+    }
+}
 </style>

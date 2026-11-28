@@ -1168,3 +1168,38 @@ html.dark [role="dialog"] button:disabled {
   color: #cbd5e1 !important;
   border-color: #475569 !important;
 }
+
+/* ============================================================
+   Stepper en móvil: más compacto para que el botón de tema
+   (fijo arriba a la derecha) no tape el último paso al hacer scroll.
+   ============================================================ */
+@media (max-width: 480px) {
+  .stepper-header .p-step-header {
+    gap: 0.25rem !important;
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+
+  .stepper-header .p-step-title {
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .stepper-header .p-step-title {
+    font-size: 0.85rem !important;
+  }
+
+  .stepper-header .p-step-number {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    min-width: 1.5rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 340px) {
+  .stepper-header .p-step:not(.p-step-active) .p-step-title {
+    display: none;
+  }
+}

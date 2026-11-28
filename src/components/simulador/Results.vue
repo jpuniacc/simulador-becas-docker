@@ -3633,4 +3633,43 @@ defineExpose({
   color: #e2e8f0 !important;
 }
 
+:global(html.dark .mobile-accordion-item) {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+:global(html.dark .mobile-accordion-trigger),
+:global(html.dark .mobile-accordion-trigger span) {
+  color: #e2e8f0 !important;
+}
+
+:global(html.dark .mobile-accordion-trigger:hover) {
+  background-color: #334155;
+}
+
+:global(html.dark .mobile-accordion-trigger:active) {
+  background-color: #475569;
+}
+
+:global(html.dark .mobile-card-title) {
+  color: #e2e8f0 !important;
+}
+
+:global(html.dark .mobile-version .text-blue-600) {
+  color: #93c5fd !important;
+}
+
+:global(html.dark .mobile-version .text-green-600) {
+  color: #86efac !important;
+}
+
+:global(html.dark .detalle-title) {
+  color: #e2e8f0 !important;
+}
+
+:global(html.dark .payment-simulation-card .p-card-title),
+:global(html.dark .payment-simulation-card .p-card-title span) {
+  color: #e2e8f0 !important;
+}
+
 </style>
